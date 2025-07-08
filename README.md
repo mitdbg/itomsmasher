@@ -14,8 +14,10 @@ playwright install
 To run the DSL processor on a test file:
 
 ```bash
-python dslProcessor.py tests/bubbleSort.itom
+python src/dslProcessor.py tests/bubbleSort.itom
 ```
+
+This will yield a local file called `bubbleSort-output.png`
 
 ## Test Files
 
