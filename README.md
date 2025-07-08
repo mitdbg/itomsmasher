@@ -11,13 +11,23 @@ playwright install
 
 ## Usage
 
-To run the DSL processor on a test file:
+### Adding a program
+
+To add a new program to the local program directory:
 
 ```bash
-python src/dslProcessor.py tests/bubbleSort.itom
+python src/executor.py -add tests/bubbleSort.itom
 ```
 
-This will yield a local file called `bubbleSort-output.png`
+### Running a program
+
+To run a program by name:
+
+```bash
+python src/executor.py -run bubbleSort
+```
+
+This will generate an `output.png` file with the visual output.
 
 ## Test Files
 
