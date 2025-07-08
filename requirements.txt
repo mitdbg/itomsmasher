@@ -5,3 +5,9 @@
 
 # Type checking
 typing-extensions>=4.0.0
+
+# Web automation and rendering
+playwright>=1.40.0
+
+# Markdown processing
+markdown>=3.4.0
