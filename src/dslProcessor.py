@@ -64,7 +64,6 @@ class BasicDSLProcessor(DSLProcessor):
 
                 rhsProcessed = processElement(rhs, variables)
                 variables[lhs] = rhsProcessed
-                print(f"Set variable {lhs} to {rhsProcessed}")
                 return None
             elif code_block.startswith("include"):
                 # Invoke the include program
