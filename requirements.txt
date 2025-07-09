@@ -1,13 +1,2 @@
-# Add your project dependencies here
-# Example:
-# requests>=2.25.1
-# numpy>=1.21.0
-
-# Type checking
-typing-extensions>=4.0.0
-
-# Web automation and rendering
-playwright>=1.40.0
-
-# Markdown processing
-markdown>=3.4.0
+Markdown==3.8.2
+playwright==1.53.0
