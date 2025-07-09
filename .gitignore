@@ -5,8 +5,14 @@ __pycache__/
 
 node_modules/
 node_modules/*
+.programs
+
+e2e
+tests-examples
 package-lock.json
 package.json
+playwright.config.ts
+
 # C extensions
 *.so
 
@@ -136,3 +142,9 @@ dmypy.json
 # OS
 .DS_Store
 Thumbs.db
+
+# Playwright
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/

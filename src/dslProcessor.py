@@ -50,7 +50,7 @@ class BasicDSLProcessor(DSLProcessor):
     def getVisualReturnTypes(self) -> List[str]:
         return ["png", "html"]
 
-    def __preprocess__(self, code: str, preferredVisualType: Optional[str] = None) -> str:
+    def __preprocess__(self, code: str, preferredVisualType: Optional[str] = None, startBlock: Optional[str] = "{{", endBlock: Optional[str] = "}}") -> str:
         # Any part of the code in double-braces should be replaced with a pre-processed version of the code
         # Let's start by iterating through the code and finding all double-brace blocks
         # We'll replace each double-brace block with the pre-processed version of the code
@@ -87,7 +87,7 @@ class BasicDSLProcessor(DSLProcessor):
                 includedProgram = self.programDirectory.getProgram(includedProgramName)
                 providedInputs = {}
                 if len(includedProgram.inputs) != len(params):
-                    raise ValueError(f"Expected {len(includedProgram.inputs)} parameters for program {includedProgramName}, but got {len(params)}")
+                    raise ValueError(f"Expected {len(includedProgram.inputs)} parameters for program {includedProgramName}, but got {len(params)} {params}")
 
                 for i in range(len(includedProgram.inputs)):
                     label = includedProgram.inputs[i]
@@ -139,9 +139,9 @@ class BasicDSLProcessor(DSLProcessor):
             # If the code block is a standalone variable, we need to replace it with the variable's value
             return convertToMarkdownStr(processElement(code_block, variables))
 
-        while "{{" in code:
-            start = code.find("{{")
-            end = code.find("}}")
+        while startBlock in code:
+            start = code.find(startBlock)
+            end = code.find(endBlock)
             if start == -1 or end == -1:
                 break
             # Get the code between the double-braces
