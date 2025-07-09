@@ -1,5 +1,6 @@
 import sys
 import json
+import os
 from typing import Optional, List, Tuple, TypedDict, Any
 
 # ProgramInput is a class that represents the input of a program
@@ -71,13 +72,55 @@ class NamedProgram:
 
 # ProgramDirectory is a class that stores all the programs in the system
 class ProgramDirectory:
-    def __init__(self):
+    def __init__(self, localProgramDir: str):
         self.programs = {}
+        self.localProgramDir = localProgramDir
 
-    def addProgram(self, program: NamedProgram) -> None:
+        # Each program has its own directory, so we need to list all the directories in the program directory
+        for file in os.listdir(localProgramDir):
+            if os.path.isdir(os.path.join(localProgramDir, file)):
+                # Find json file in the directory
+                jsonFile = os.path.join(localProgramDir, file, "program.json")
+                if os.path.exists(jsonFile):
+                    # Load the json file
+                    with open(jsonFile, "r") as f:
+                        program = NamedProgram.from_dict(json.load(f))
+                        self.__addProgram__(program)
+
+        self.saveAndRefresh()
+
+    def saveAndRefresh(self) -> None:
+        for programName, program in self.programs.items():
+            programDir = os.path.join(self.localProgramDir, programName)
+            if not os.path.exists(programDir):
+                os.makedirs(programDir)
+
+            # Create the code file if it doesn't exist
+            codeFile = os.path.join(programDir, "code.itom")
+            if not os.path.exists(codeFile):
+                with open(codeFile, "w") as f:
+                    f.write(program.getLatestCode())
+            else:
+                # Load the code file and update the program if it has changed
+                with open(codeFile, "r") as f:
+                    codeText = f.read()
+                    if codeText != program.getLatestCode():
+                        program.addCodeVersion(codeText)
+
+            # Write out the program JSON file
+            with open(os.path.join(self.localProgramDir, programName, "program.json"), "w") as f:
+                f.write(program.toJson())
+
+    def __addProgram__(self, program: NamedProgram) -> None:
         if program.name in self.programs:
             raise ValueError(f"Program {program.name} already exists")
         self.programs[program.name] = program
+
+    def addNewProgram(self, programName: str, description: str, dslId: str, inputs: List[str], code: str) -> None:
+        program = NamedProgram(programName, description, dslId, inputs)
+        program.addCodeVersion(code)
+        self.__addProgram__(program)
+        self.saveAndRefresh()
 
     def getProgram(self, programName: str) -> NamedProgram:
         if programName not in self.programs:
