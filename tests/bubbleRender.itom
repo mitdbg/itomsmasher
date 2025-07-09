@@ -1,18 +1,21 @@
 {
+"$schema": "https://vega.github.io/schema/vega-lite/v6.json",
 "data": {
     "values": [
-      {"nums": {{numbers}}, 
-      "rnk": [1, 2, 3, 4, 5]}
+      {"numbers": {{include("bubbleCalc", numbers, steps)}} }
     ]
   },
   "transform": [
-    {"flatten": ["nums", "rnk"]},
+    {"flatten": ["numbers"]},
+    {"window": [{
+      "op": "rank",
+      "as": "rank"
+    }]}
+
   ],
-  "$schema": "https://vega.github.io/schema/vega-lite/v6.json",
-  "description": "A simple bar chart with embedded data.",
   "mark": "bar",
   "encoding": {
-    "x": {"field": "rnk", "type": "nominal", "axis": {"labelAngle": 0}},
-    "y": {"field": "nums", "type": "quantitative"}
+    "x": {"field": "rank", "type": "nominal", "axis": {"labelAngle": 0}},
+    "y": {"field": "numbers", "type": "quantitative"}
   }
 }
