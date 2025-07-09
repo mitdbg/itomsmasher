@@ -1,8 +1,7 @@
 from programs import ProgramInput, ProgramOutput, ProgramDirectory, NamedProgram
 
-import time
+import time, os, base64
 from typing import Optional, List, Tuple, Any
-import base64
 from markdown import markdown
 from playwright.sync_api import sync_playwright
 
@@ -11,7 +10,8 @@ class ProgramExecutor:
     def __init__(self, programDirectory: ProgramDirectory):
         self.programDirectory = programDirectory
         self.availableDSLProcessors = {
-            "basic": BasicDSLProcessor(programDirectory)
+            "basic": BasicDSLProcessor(programDirectory),
+            "aiimage": AIImageProcessor(programDirectory)
         }
 
     def executeProgram(self, programName: str, input: ProgramInput, preferredVisualReturnType: Optional[str] = None) -> ProgramOutput:
@@ -40,6 +40,55 @@ class DSLProcessor:
         programOutput = self.process(latestCode, input, preferredVisualReturnType)
         latestExecutionHistory.append((input, programOutput))
         return programOutput
+
+
+class AIImageProcessor(DSLProcessor):
+    def __init__(self, programDirectory: ProgramDirectory):
+        super().__init__()
+        self.programDirectory = programDirectory
+
+    def getVisualReturnTypes(self) -> List[str]:
+        return ["png"]
+    
+    def process(self, code: str, input: ProgramInput, preferredVisualReturnType: Optional[str] = None) -> ProgramOutput:
+        # Contact ChatGPT to generate an image based on the text in the code
+        # Return the image as a ProgramOutput
+        import requests
+
+        # Get API key from environment
+        api_key = os.getenv("OPENAI_API_KEY")
+        if not api_key:
+            raise ValueError("OPENAI_API_KEY environment variable not set")
+
+        # Call OpenAI API to generate image
+        headers = {
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {api_key}"
+        }
+
+        data = {
+            "prompt": code,
+            "n": 1,
+            "size": "1024x1024",
+            "response_format": "b64_json"
+        }
+
+        response = requests.post(
+            "https://api.openai.com/v1/images/generations",
+            headers=headers,
+            json=data
+        )
+
+        if response.status_code != 200:
+            raise Exception(f"OpenAI API error: {response.text}")
+
+        # Get base64 encoded image and convert to bytes
+        image_data = response.json()["data"][0]["b64_json"]
+        png_bytes = base64.b64decode(image_data)
+        return ProgramOutput(endTimestamp=time.time(),
+                    visualReturnType="png",
+                    visualOutput=png_bytes,
+                    dataOutputs={})
 
 # BasicDSLProcessor is a DSL processor for the basic DSL
 class BasicDSLProcessor(DSLProcessor):

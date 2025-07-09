@@ -18,6 +18,8 @@ if __name__ == "__main__":
     parser.add_argument("-dsl", type=str, help="The DSL type for the program being added")
     parser.add_argument("-source", type=str, help="The source file for the program being added") 
     parser.add_argument("-refresh", action="store_true", help="Refresh the program directory")
+    parser.add_argument("-format", type=str, help="Preferred output format (png, html, etc)", default="png")
+    parser.add_argument("-output", type=str, help="Output file path for visual rendering")
     args = parser.parse_args()
 
     localProgramDir = ".programs"
@@ -32,10 +34,15 @@ if __name__ == "__main__":
         programName = args.run
         namedProgram = programDirectory.getProgram(programName)
         print(f"Executing program {namedProgram.name}")
-        programOutput = programExecutor.executeProgram(namedProgram.name, ProgramInput(startTimestamp=0, inputs={}), preferredVisualReturnType="png")
+        if not args.output:
+            args.output = f"{namedProgram.name}.{args.format}"
+
+        print(f"Outputting to {args.output}")
+        print(f"Format: {args.format}")
+        programOutput = programExecutor.executeProgram(namedProgram.name, ProgramInput(startTimestamp=0, inputs={}), preferredVisualReturnType=args.format)
 
         # Write the visual png to a file
-        with open(f"output.png", "wb") as f:
+        with open(args.output, "wb") as f:
             f.write(programOutput["visualOutput"])
     elif args.refresh:
         programDirectory.refresh()
@@ -46,7 +53,7 @@ if __name__ == "__main__":
 
         programName = args.add
         programFile = args.source
-        programDirectory.addNewProgram(programName, "Loaded from file {programFile}", args.dsl, [], open(programFile).read())
+        programDirectory.addNewProgram(programName, f"Loaded from file {programFile}", args.dsl, [], open(programFile).read())
     else:
         print("Usage: python executor.py -run <program_name> or python executor.py -add <program_name>")
         sys.exit(1)
