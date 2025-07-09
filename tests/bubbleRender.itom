@@ -1,21 +1,47 @@
-{
-"$schema": "https://vega.github.io/schema/vega-lite/v6.json",
-"data": {
-    "values": [
-      {"numbers": {{include("bubbleCalc", numbers, steps)}} }
-    ]
-  },
-  "transform": [
-    {"flatten": ["numbers"]},
-    {"window": [{
-      "op": "rank",
-      "as": "rank"
-    }]}
+    <script src="https://cdn.jsdelivr.net/npm/vega@6.1.2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vega-lite@6.2.0"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vega-embed@7.0.2"></script>
 
-  ],
-  "mark": "bar",
-  "encoding": {
-    "x": {"field": "rank", "type": "nominal", "axis": {"labelAngle": 0}},
-    "y": {"field": "numbers", "type": "quantitative"}
-  }
-}
+    <div id="vis"></div>
+
+    <script type="text/javascript">
+
+      function renderBubbleSort(numbers, steps) {
+        // calculate the bubble sort up to the given steps
+        for (let i = 0; i < steps; i++) {
+          for (let j = 0; j < numbers.length - 1; j++) {
+            if (numbers[j] > numbers[j + 1]) {
+              [numbers[j], numbers[j + 1]] = [numbers[j + 1], numbers[j]];
+            }
+          }
+        }
+
+        var yourVlSpec = {
+                "$schema": "https://vega.github.io/schema/vega-lite/v6.json",
+                "data": {
+                    "values": [
+                    {"numbers": numbers }
+                    ]
+                },
+                "transform": [
+                    {"flatten": ["numbers"]},
+                    {"window": [{
+                    "op": "rank",
+                    "as": "rank"
+                    }]}
+
+                ],
+                "mark": "bar",
+                "encoding": {
+                    "x": {"field": "rank", "type": "nominal", "axis": {"labelAngle": 0}},
+                    "y": {"field": "numbers", "type": "quantitative"}
+                },
+                "height": 100,
+                "width": 400
+            };
+        
+        vegaEmbed('#vis', yourVlSpec);
+      }
+    
+    renderBubbleSort([5,4,3,2,1], 1);
+    </script>

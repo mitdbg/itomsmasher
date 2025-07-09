@@ -12,6 +12,7 @@ tests-examples
 package-lock.json
 package.json
 playwright.config.ts
+output.png
 
 # C extensions
 *.so
