@@ -45,7 +45,7 @@ if __name__ == "__main__":
         with open(args.output, "wb") as f:
             f.write(programOutput["visualOutput"])
     elif args.refresh:
-        programDirectory.refresh()
+        programDirectory.saveAndRefresh()
     elif args.add:
         if not args.dsl or not args.source:
             print("Error: Both -dsl and -source are required when adding a program")

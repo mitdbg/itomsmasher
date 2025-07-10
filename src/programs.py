@@ -117,6 +117,8 @@ class ProgramDirectory:
         self.programs[program.name] = program
 
     def addNewProgram(self, programName: str, description: str, dslId: str, inputs: List[str], code: str) -> None:
+        # REMIND: We need to modify this so it does not rely on metadata from the invoker. Instead, things
+        # like dslId description, and inputs should be read from the code header.
         program = NamedProgram(programName, description, dslId, inputs)
         program.addCodeVersion(code)
         self.__addProgram__(program)

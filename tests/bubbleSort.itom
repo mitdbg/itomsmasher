@@ -1,3 +1,9 @@
+# dsl: basic
+# input: steps The number of steps to take in the animation of bubble sort.
+# input: numbers A list of numbers to sort
+# output: newNumbers The list of numbers after the given number of steps
+# output: maxSteps The maximum number of steps needed to sort the list
+
 # Welcome to the world of Bubble Sort
 ## The theory
 We want to take a list of numbers and sort them in ascending order.
@@ -11,25 +17,30 @@ Too bad they're out of order! What does bubble sort do?
 Imagine we start at positions 0 and 1.
 The first two numbers are numbers[0] and numbers[1]. Let's see what happens after one iteration of bubble sort.
 {{steps = 1}} 
-{{newNumbers = include("bubbleRender", numbers, 1)}}
 
-{{newNumbers}}
+{{include("bubbleRender", numbers, 1)}}
 
 We can see that the first two numbers are swapped.
  
 Now let's try the second step.
 {{newNumbers = include("bubbleRender", numbers, 2)}}
-
 {{newNumbers}}
+Here's the data:
+{{newNumbers.data}}
 
 We are now comparing 5 and 8. These are in the correct order, so we move on to the next pair.
 
 {{newNumbers = include("bubbleRender", numbers, 3)}}
+{{newNumbers.vis}}
 
 We are now comparing 8 and 4. These are in the wrong order, so we swap them.
 
 We can render the full bubble sort process by setting steps to the length of the list.
 
-{{return None}}
+Bonus: here's a picture of a unicorn on a rainbow:
+
+{{include("aiImagePrompt", "Make a beautiful fantastic image of a unicorn on a rainbow.")}}
+
+
 
 

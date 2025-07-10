@@ -1,4 +1,5 @@
 # dsl: aiimage
-# inputs: topic
+# inputs: prompt
 
-Make a beautiful fantastic image of a unicorn on a rainbow.
+$prompt
+

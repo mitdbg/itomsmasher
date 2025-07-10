@@ -166,16 +166,16 @@ class BasicDSLProcessor(DSLProcessor):
             elif isinstance(data, float):
                 return str(data)
             elif isinstance(data, dict):
-                if data.visualReturnType == "html":
-                    return data.visualOutput
-                elif data.visualReturnType == "png":
+                if data["visualReturnType"] == "html":
+                    return data["visualOutput"]
+                elif data["visualReturnType"] == "png":
                     # Be sure to base64 encode the png
-                    return f"![{data.visualReturnType}](data:image/png;base64,{base64.b64encode(data.visualOutput).decode('utf-8')})"
-                elif data.visualReturnType == None:
+                    return f"![{data['visualReturnType']}](data:image/png;base64,{base64.b64encode(data['visualOutput']).decode('utf-8')})"
+                elif "visualReturnType" not in data or data["visualReturnType"] == None:
                     # Convert the dictionary to a markdown string
-                    return "\n".join([f"{key}: {value}" for key, value in data.dataOutputs.items()])
+                    return "\n".join([f"{key}: {value}" for key, value in data["dataOutputs"].items()])
                 else:
-                    raise ValueError(f"Invalid visual return type: {data.visualReturnType}")
+                    raise ValueError(f"Invalid visual return type: {data['visualReturnType']}")
             elif isinstance(data, list):
                 return "\n".join([convertToMarkdownStr(item) for item in data])
             else:
