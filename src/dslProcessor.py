@@ -31,13 +31,13 @@ class DSLProcessor:
     def getVisualReturnTypes(self) -> List[str]:
         pass
 
-    def process(self, program: NamedProgram, input: dict, preferredVisualReturnType: Optional[str] = None) -> ProgramOutput:
+    def process(self, program: NamedProgram, input: dict, outputNames: List[str], preferredVisualReturnType: str) -> ProgramOutput:
         pass
 
     def __convertToLocalDSL__(self, data: Any) -> str:
         pass
 
-    def __preprocess__(self, code: str, input: dict, preferredVisualType: Optional[str] = None, startBlock: Optional[str] = "{{", endBlock: Optional[str] = "}}") -> str:
+    def __preprocess__(self, code: str, input: dict, preferredVisualType: Optional[str] = None, startBlock: Optional[str] = "{{", endBlock: Optional[str] = "}}") -> Tuple[str, dict]:
         # Any part of the code in double-braces should be replaced with a pre-processed version of the code
         # Let's start by iterating through the code and finding all double-brace blocks
         # We'll replace each double-brace block with the pre-processed version of the code
@@ -49,8 +49,8 @@ class DSLProcessor:
             # Check if the code block is a variable assignment of the form varname = value. Use regex to match this.
             if re.match(r"^[a-zA-Z_][a-zA-Z0-9_]* = .*$", code_block):
                 # It's a variable assignment
-                # Split the code block into lhs and rhs
-                lhs, rhs = code_block.split("=")
+                # Split the code block into lhs and rhs using the leftmost equals sign
+                lhs, rhs = code_block.split("=", 1)
                 lhs = lhs.strip()
                 rhs = rhs.strip()
 
@@ -58,12 +58,26 @@ class DSLProcessor:
                 variables[lhs] = rhsProcessed
                 return None
             
-            # Check if the code block is a variable access of the form varname.fieldname. There must be a dot separator. Use regex to match this.
+            # Check if the code block has a dotted field access. Must have at least one dot.
             elif re.match(r"^[a-zA-Z_][a-zA-Z0-9_]*(\.[a-zA-Z_][a-zA-Z0-9_]*)+$", code_block):
                 # It's a variable access
-                varName = code_block.split(".")[0]
-                field = code_block.split(".")[1]
-                return variables[varName][field]
+                # Split the code block into varName and then remainder (of zero or more dotted names)
+                lhs, rhs = code_block.split(".", 1)
+                val = variables[lhs]
+                parts = rhs.split(".")
+
+                for part in parts:
+                    if isinstance(val, ProgramOutput):
+                        if part == "data":
+                            val = val.data()
+                        else:
+                            raise ValueError(f"Invalid field: {part} for program output")
+                    elif isinstance(val, dict):
+                        val = val[part]
+                    else:
+                        raise ValueError(f"Invalid dotted field access: {code_block}")
+
+                return val
 
             # Check if the code block is of the form {{include("programName", input0=value0, input1=value1, input2=value2)}}, where we might have zero or more 'input' parameters.
             # Use a regex to match this.
@@ -93,6 +107,7 @@ class DSLProcessor:
             else:
                 # It's a value. Either a variable name or a literal value.
                 if code_block in variables:
+                    print("VARIABLE: ", code_block, " has returned value", variables[code_block])
                     return variables[code_block]
                 else:
                     # It's a literal value. Parse like a Python atomic literal
@@ -114,14 +129,14 @@ class DSLProcessor:
             # Replace the double-brace block with the pre-processed version of the code
             code = code[:start] + __preprocessBlock__(code_block) + code[end+2:]
 
-        return code
+        return code, variables
 
 
     def runProgram(self, program: NamedProgram, input: ProgramInput, preferredVisualReturnType: Optional[str] = None) -> ProgramOutput:
         # Create pair of input and empty output
         latestCode = program.codeVersions[-1]
         latestExecutionHistory = program.executions[-1]
-        programOutput = self.process(latestCode, input["inputs"], preferredVisualReturnType)
+        programOutput = self.process(latestCode, input["inputs"], program.outputs, preferredVisualReturnType)
         latestExecutionHistory.append((input, programOutput))
         return programOutput
 
@@ -142,12 +157,12 @@ class AIImageProcessor(DSLProcessor):
         else:
             raise ValueError(f"Invalid return type during markdown preprocessing: {data}")
 
-    def process(self, code: str, input: dict, preferredVisualReturnType: Optional[str] = None) -> ProgramOutput:
+    def process(self, code: str, input: dict, outputNames: List[str], preferredVisualReturnType: str) -> ProgramOutput:
         # Contact ChatGPT to generate an image based on the text in the code
         # Return the image as a ProgramOutput
 
         # Preprocess the code so that all variables are replaced with their values
-        code = self.__preprocess__(code, input, preferredVisualReturnType)
+        code, finalVariables = self.__preprocess__(code, input, preferredVisualReturnType)
 
         size = input["size"] if "size" in input else "large"
         if size == "small":
@@ -194,7 +209,8 @@ class AIImageProcessor(DSLProcessor):
         # Get base64 encoded image and convert to bytes
         image_data = response.json()["data"][0]["b64_json"]
         png_bytes = base64.b64decode(image_data)
-        return ProgramOutput(time.time(), "png", png_bytes, {})
+        outputData = {outputName: finalVariables[outputName] for outputName in outputNames}
+        return ProgramOutput(time.time(), "png", png_bytes, outputData)
 
 # BasicDSLProcessor is a DSL processor for the basic DSL
 class BasicDSLProcessor(DSLProcessor):
@@ -233,16 +249,17 @@ class BasicDSLProcessor(DSLProcessor):
             # What else could it be?
             raise ValueError(f"Invalid return type during markdown preprocessing: {data}")
 
-    def process(self, code: str, input: dict, preferredVisualReturnType: Optional[str] = None) -> ProgramOutput:
+    def process(self, code: str, input: dict, outputNames: List[str], preferredVisualReturnType: str) -> ProgramOutput:
         if preferredVisualReturnType not in self.getVisualReturnTypes():
             raise ValueError(f"Invalid visual return type: {preferredVisualReturnType}")
 
         # Preprocess the document
-        finalizedMarkdown = self.__preprocess__(code, input, preferredVisualReturnType)
+        finalizedMarkdown, finalVariables = self.__preprocess__(code, input, preferredVisualReturnType)
         html = markdown(finalizedMarkdown)
 
         if preferredVisualReturnType == "html":
-            return ProgramOutput(time.time(), "html", html, {})
+            outputData = {outputName: finalVariables[outputName] for outputName in outputNames}
+            return ProgramOutput(time.time(), "html", html, outputData)
         
         elif preferredVisualReturnType == "png":
             with sync_playwright() as p:
@@ -251,7 +268,8 @@ class BasicDSLProcessor(DSLProcessor):
                 page.set_content(html)
                 png_bytes = page.screenshot(full_page=True, type="png")
                 browser.close()
-                return ProgramOutput(time.time(), "png", png_bytes, {})
+                outputData = {outputName: finalVariables[outputName] for outputName in outputNames}
+                return ProgramOutput(time.time(), "png", png_bytes, outputData)
         else:
             raise ValueError(f"Invalid visual return type: {preferredVisualReturnType}")
 

@@ -1,9 +1,5 @@
 #@ dsl: basic
 #@ description: A tutorial itom all about bubble sort
-#@ input: steps The number of steps to take in the animation of bubble sort.
-#@ input: numbers A list of numbers to sort
-#@ output: newNumbers The list of numbers after the given number of steps
-#@ output: maxSteps The maximum number of steps needed to sort the list
 
 # Welcome to the world of Bubble Sort
 ## The theory
@@ -38,8 +34,9 @@ We can render the full bubble sort process by setting steps to the length of the
 
 Bonus: here's a picture of a unicorn on a rainbow:
 
-{{include("aiImagePrompt", topic="a unicorn on a rainbow.", size="small")}}
-
+{{x = include("aiImagePrompt", topic="a unicorn on a rainbow.", size="small")}}
+{{x}}
+{{x.data.topic}}
 
 
 

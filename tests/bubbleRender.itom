@@ -1,3 +1,10 @@
+#@ dsl: vega
+#@ description: This animates bubble sort
+#@ input: steps The number of steps to take in the animation of bubble sort.
+#@ input: numbers A list of numbers to sort
+#@ output: newNumbers The list of numbers after the given number of steps
+#@ output: maxSteps The maximum number of steps needed to sort the list
+
     <script src="https://cdn.jsdelivr.net/npm/vega@6.1.2"></script>
     <script src="https://cdn.jsdelivr.net/npm/vega-lite@6.2.0"></script>
     <script src="https://cdn.jsdelivr.net/npm/vega-embed@7.0.2"></script>
