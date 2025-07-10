@@ -53,8 +53,6 @@ if __name__ == "__main__":
                 f.write(programOutput.viz())
         else:
             raise ValueError(f"Invalid format: {args.format}")
-    elif args.refresh:
-        programDirectory.saveAndRefresh()
     elif args.status:
         # Prefix with counter
         programs = programDirectory.getPrograms()
