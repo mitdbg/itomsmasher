@@ -38,7 +38,7 @@ We can render the full bubble sort process by setting steps to the length of the
 
 Bonus: here's a picture of a unicorn on a rainbow:
 
-{{include("aiImagePrompt", "a unicorn on a rainbow.")}}
+{{include("aiImagePrompt", topic="a unicorn on a rainbow.", size="small")}}
 
 
 

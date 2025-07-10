@@ -45,8 +45,14 @@ if __name__ == "__main__":
         programOutput = programExecutor.executeProgram(namedProgram.name, ProgramInput(startTimestamp=0, inputs={}), preferredVisualReturnType=args.format)
 
         # Write the visual png to a file
-        with open(args.output, "wb") as f:
-            f.write(programOutput.viz())
+        if args.format == "png":
+            with open(args.output, "wb") as f:
+                f.write(programOutput.viz())
+        elif args.format == "html":
+            with open(args.output, "w") as f:
+                f.write(programOutput.viz())
+        else:
+            raise ValueError(f"Invalid format: {args.format}")
     elif args.refresh:
         programDirectory.saveAndRefresh()
     elif args.status:

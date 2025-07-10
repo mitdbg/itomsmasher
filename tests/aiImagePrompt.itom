@@ -1,5 +1,6 @@
 #@ dsl: aiimage
 #@ input: topic
+#@ input: size
 #@ description: An image-maker
 
  {{topic}}.

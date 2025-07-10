@@ -65,11 +65,11 @@ class DSLProcessor:
                 field = code_block.split(".")[1]
                 return variables[varName][field]
 
-            # Check if the code block is of the form {{include("programName", input0, input1, input2)}}, where we might have zero or more 'input' parameters.
+            # Check if the code block is of the form {{include("programName", input0=value0, input1=value1, input2=value2)}}, where we might have zero or more 'input' parameters.
             # Use a regex to match this.
             elif re.match(r'include\(\s*"([^"]+)"\s*(?:,\s*([^)]+))?\)', code_block):
                 # It's an include statement
-                # Form of include is 'include("programName", input)'
+                # Form of include is 'include("programName", input0=value0, input1=value1, input2=value2)'
                 match = re.match(r'include\(\s*"([^"]+)"\s*(?:,\s*([^)]+))?\)', code_block)
                 programName = match.group(1)
                 paramList = match.group(2)
@@ -79,21 +79,16 @@ class DSLProcessor:
                     paramList = paramList.split(",")
                 # strip whitespace from all params
                 paramList = [p.strip() for p in paramList]
+                # parse the param list into a dictionary
+                paramDict = {}
+                for p in paramList:
+                    key, value = p.split("=")
+                    key = key.strip()
+                    value = value.strip()
+                    paramDict[key] = value
                 includedProgramName = programName.strip("\"'")
-                params = [processElement(p, variables) for p in paramList]
-
-                # print all the programs in the program directory
-                includedProgram = self.programDirectory.getProgram(includedProgramName)
-                providedInputs = {}
-                if len(includedProgram.inputs) != len(params):
-                    raise ValueError(f"Expected {len(includedProgram.inputs)} parameters for program {includedProgramName}, but got {len(params)} {params}")
-
-                for i in range(len(includedProgram.inputs)):
-                    label = includedProgram.inputs[i]
-                    param = params[i] if i < len(params) else None
-                    providedInputs[label] = param
-                inputData = {"startTimestamp": time.time(), "inputs": providedInputs}
-
+                processedParamDict = {k: processElement(v, variables) for k, v in paramDict.items()}
+                inputData = {"startTimestamp": time.time(), "inputs": processedParamDict}
                 return ProgramExecutor(self.programDirectory).executeProgram(includedProgramName, inputData, preferredVisualType)
             else:
                 # It's a value. Either a variable name or a literal value.
@@ -154,6 +149,19 @@ class AIImageProcessor(DSLProcessor):
         # Preprocess the code so that all variables are replaced with their values
         code = self.__preprocess__(code, input, preferredVisualReturnType)
 
+        size = input["size"] if "size" in input else "large"
+        if size == "small":
+            horizontalSize = 256
+            verticalSize = 256
+        elif size == "medium":
+            horizontalSize = 512
+            verticalSize = 512
+        elif size == "large":
+            horizontalSize = 1024
+            verticalSize = 1024
+        else:
+            raise ValueError(f"Invalid size: {size}. Must be one of 'small', 'medium', or 'large'.")
+
         import requests
 
         # Get API key from environment
@@ -170,7 +178,7 @@ class AIImageProcessor(DSLProcessor):
         data = {
             "prompt": code,
             "n": 1,
-            "size": "1024x1024",
+            "size": f"{horizontalSize}x{verticalSize}",
             "response_format": "b64_json"
         }
 
@@ -234,10 +242,7 @@ class BasicDSLProcessor(DSLProcessor):
         html = markdown(finalizedMarkdown)
 
         if preferredVisualReturnType == "html":
-            return ProgramOutput(endTimestamp=time.time(),
-                                 visualReturnType="html",
-                                 visualOutput=html,
-                                 dataOutputs={})
+            return ProgramOutput(time.time(), "html", html, {})
         
         elif preferredVisualReturnType == "png":
             with sync_playwright() as p:
@@ -246,10 +251,7 @@ class BasicDSLProcessor(DSLProcessor):
                 page.set_content(html)
                 png_bytes = page.screenshot(full_page=True, type="png")
                 browser.close()
-                return ProgramOutput(endTimestamp=time.time(),
-                                     visualReturnType="png",
-                                     visualOutput=png_bytes,
-                                     dataOutputs={})
+                return ProgramOutput(time.time(), "png", png_bytes, {})
         else:
             raise ValueError(f"Invalid visual return type: {preferredVisualReturnType}")
 
