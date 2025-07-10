@@ -2,7 +2,7 @@
 #@ input: topic
 #@ description: An image-maker
 
-Please render an image of: {{topic}}.
+ {{topic}}.
 
 
 
