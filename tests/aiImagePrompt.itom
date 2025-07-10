@@ -1,5 +1,9 @@
-# dsl: aiimage
-# inputs: prompt
+#@ dsl: aiimage
+#@ input: topic
+#@ description: An image-maker
 
-$prompt
+Please render an image of: {{topic}}.
+
+
+
 

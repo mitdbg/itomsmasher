@@ -9,11 +9,24 @@ class ProgramInput(TypedDict):
     inputs: TypedDict
 
 # ProgramOutput is a class that represents the output of a program
-class ProgramOutput(TypedDict):
-    endTimestamp: int
-    visualReturnType: str
-    visualOutput: Any
-    dataOutputs: TypedDict
+class ProgramOutput:
+    def __init__(self, endTimestamp: int, visualReturnType: str, visualOutput: Any, dataOutputs: TypedDict):
+        self.__endTimestamp = endTimestamp
+        self.__visualReturnType = visualReturnType
+        self.__visualOutput = visualOutput
+        self.__dataOutputs = dataOutputs
+
+    def endTimestamp(self) -> int:
+        return self.__endTimestamp
+    
+    def viz(self) -> Any:
+        return self.__visualOutput
+    
+    def visualReturnType(self) -> str:
+        return self.__visualReturnType
+    
+    def data(self) -> TypedDict:
+        return self.__dataOutputs
 
 # NamedProgram is a class that represents a program with a 
 # name, description, DSL ID, code versions, inputs, and outputs.
@@ -116,13 +129,59 @@ class ProgramDirectory:
             raise ValueError(f"Program {program.name} already exists")
         self.programs[program.name] = program
 
-    def addNewProgram(self, programName: str, description: str, dslId: str, inputs: List[str], code: str) -> None:
+    def addNewProgram(self, programName: str, metadataComment: str, code: str) -> None:
         # REMIND: We need to modify this so it does not rely on metadata from the invoker. Instead, things
         # like dslId description, and inputs should be read from the code header.
-        program = NamedProgram(programName, description, dslId, inputs)
-        program.addCodeVersion(code)
+
+        # Read the code header to get the description, dslId, inputs, and outputs.
+        # The header is a list of #@-prefixed lines. Each line is a key-value pair of the form "key: value".
+        # The header should be removed from the code text.
+        # Once we hit a line that is not prefixed with #@, we stop parsing the header.
+
+        header = []
+        inHeader = True
+        remainingCode = []
+        for line in code.split("\n"):
+            if inHeader and line.startswith("#@"):
+                # Remove the #@ prefix
+                line = line[2:]
+                header.append(line)
+            else:
+                inHeader = False
+                remainingCode.append(line)
+
+        # Parse the header
+        description = ""
+        dslId = None
+        inputs = []
+        outputs = []
+        for line in header:
+            key, value = line.split(":")
+            key = key.strip()
+            value = value.strip()
+            if key == "description":
+                description += value + "\n"
+            elif key == "dsl":
+                if dslId is not None:
+                    raise ValueError(f"Multiple dslId values in header: {dslId} and {value}")
+                dslId = value
+            elif key == "input":
+                inputs.append(value)
+            elif key == "output":
+                outputs.append(value)
+            else:
+                raise ValueError(f"Unknown header key: {key}")
+
+        if dslId is None:
+            raise ValueError("No dslId found in header")
+
+        program = NamedProgram(programName, description, dslId, inputs, outputs)
+        program.addCodeVersion("\n".join(remainingCode))
         self.__addProgram__(program)
         self.saveAndRefresh()
+
+    def getPrograms(self) -> List[NamedProgram]:
+        return list(self.programs.values())
 
     def getProgram(self, programName: str) -> NamedProgram:
         if programName not in self.programs:
