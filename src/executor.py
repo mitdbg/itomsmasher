@@ -5,7 +5,7 @@ import argparse
 import json
 import shutil
 from programs import ProgramInput, ProgramOutput, ProgramDirectory, NamedProgram
-from dslProcessor import ProgramExecutor
+from programExecutor import ProgramExecutor
 from typing import Optional, List, Tuple
 
 if __name__ == "__main__":
