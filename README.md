@@ -41,6 +41,8 @@ python src/executor.py -run bubbleSort -output bubbleSort.png -format png
 
 Supported formats: `png`, `html`
 
+Keep in mind you will have to add all included programs in order to execute a top-level program successfully
+
 ### Listing programs
 
 To see all available programs:
