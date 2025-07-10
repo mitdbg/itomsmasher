@@ -203,12 +203,28 @@ class ProgramDirectory:
         if changed:
             self.save()
 
-    def addNewProgram(self, programName: str, metadataComment: str, rawCode: str) -> None:
-        if programName in self.programs:
-            raise ValueError(f"Program {programName} already exists")
-        program = NamedProgram.from_code(programName, rawCode)
-        self.programs[program.name] = program
-        self.save()
+    def addNewProgram(self, programName: str, metadataComment: str, rawCode: str, refresh: bool = False) -> None:
+        if programName not in self.programs:
+            program = NamedProgram.from_code(programName, rawCode)
+            self.programs[program.name] = program
+            self.save()
+        else:
+            if not refresh:
+                raise ValueError(f"Program {programName} already exists")
+            else:
+                # Copy the new program source file (code.itom)to the program directory and refresh
+                program = self.programs[programName]
+                if program.getLatestRawCode() != rawCode:
+                    programDir = os.path.join(self.localProgramDir, programName)
+                    if os.path.exists(programDir):
+                        # Copy the new program source file (code.itom) to the program directory
+                        with open(os.path.join(programDir, "code.itom"), "w") as f:
+                            f.write(rawCode)
+
+                    print(f"Updating program {programName}")
+                    self.__refresh__()
+
+
 
     def getPrograms(self) -> List[NamedProgram]:
         return list(self.programs.values())

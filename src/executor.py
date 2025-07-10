@@ -69,7 +69,7 @@ if __name__ == "__main__":
 
         programName = args.add
         programFile = args.source
-        programDirectory.addNewProgram(programName, f"Loaded from file {programFile}", open(programFile).read())
+        programDirectory.addNewProgram(programName, f"Loaded from file {programFile}", open(programFile).read(), refresh=True)
     else:
         print("Usage: python executor.py -run <program_name> or python executor.py -add <program_name> or python executor.py -refresh or python executor.py -status")
         sys.exit(1)

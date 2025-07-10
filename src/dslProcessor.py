@@ -107,7 +107,6 @@ class DSLProcessor:
             else:
                 # It's a value. Either a variable name or a literal value.
                 if code_block in variables:
-                    print("VARIABLE: ", code_block, " has returned value", variables[code_block])
                     return variables[code_block]
                 else:
                     # It's a literal value. Parse like a Python atomic literal
