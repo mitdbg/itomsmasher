@@ -6,7 +6,7 @@ import re
 from playwright.sync_api import sync_playwright
 import pythonmonkey as pm
 from typing import List, Any
-
+import base64
 #need to fix this for return types/rendering
 
 class JavascriptDSLProcessor(EscapedSublanguageDSLProcessor):
