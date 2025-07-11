@@ -2,3 +2,4 @@ Markdown==3.8.2
 playwright==1.53.0
 requests>=2.25.1
 vl-convert-python>=1.8
+pythonmonkey>=1.1

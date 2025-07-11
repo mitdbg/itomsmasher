@@ -7,8 +7,7 @@ from playwright.sync_api import sync_playwright
 import pythonmonkey as pm
 from typing import List, Any
 
-#retcode = pm.eval(code);
-#print(retcode());
+#need to fix this for return types/rendering
 
 class JavascriptDSLProcessor(EscapedSublanguageDSLProcessor):
 
