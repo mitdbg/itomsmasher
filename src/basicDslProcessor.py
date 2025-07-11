@@ -1,4 +1,4 @@
-from dslProcessor import DSLProcessor
+from dslProcessor import DSLProcessor, EscapedSublanguageDSLProcessor
 from programs import ProgramOutput, ProgramDirectory
 from typing import List, Any
 import time
@@ -7,15 +7,15 @@ from markdown import markdown
 from playwright.sync_api import sync_playwright
 
 # BasicDSLProcessor is a DSL processor for the basic DSL
-class BasicDSLProcessor(DSLProcessor):
+class BasicDSLProcessor(EscapedSublanguageDSLProcessor):
     def __init__(self, programDirectory: ProgramDirectory):
-        super().__init__()
-        self.programDirectory = programDirectory
+        super().__init__(programDirectory)
 
     def getVisualReturnTypes(self) -> List[str]:
         return ["png", "html"]
     
     def __convertToLocalDSL__(self, data: Any) -> str:
+        "This converts a data item in the braced sublanguage to a representation that can be used in markdown."
         if data is None:
             return ""
         elif isinstance(data, str):
@@ -43,13 +43,9 @@ class BasicDSLProcessor(DSLProcessor):
             # What else could it be?
             raise ValueError(f"Invalid return type during markdown preprocessing: {data}")
 
-    def process(self, code: str, input: dict, outputNames: List[str], preferredVisualReturnType: str) -> ProgramOutput:
-        if preferredVisualReturnType not in self.getVisualReturnTypes():
-            raise ValueError(f"Invalid visual return type: {preferredVisualReturnType}")
-
-        # Preprocess the document
-        finalizedMarkdown, finalVariables = self.__preprocess__(code, input, preferredVisualReturnType)
-        html = markdown(finalizedMarkdown)
+    def __postProcess__(self, postprocessedSourceCode: str, finalVariables: dict, outputNames: List[str], preferredVisualReturnType: str) -> ProgramOutput:
+        "This postprocesses the source code (after the braced sublanguage is processed). In this case, it's processed as markdown."
+        html = markdown(postprocessedSourceCode)
 
         if preferredVisualReturnType == "html":
             outputData = {outputName: finalVariables[outputName] for outputName in outputNames}

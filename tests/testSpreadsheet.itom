@@ -1,0 +1,19 @@
+#@ dsl: spreadsheet
+#@ input: x
+#@ output: A8
+#@ description: A test spreadsheet
+
+A1: 10
+A2:2
+A3:3
+A4:4
+A5:5
+A6:6
+A7:7
+A8: =AVERAGE(A1:A7)
+
+
+
+
+
+

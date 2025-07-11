@@ -9,13 +9,26 @@ class DSLProcessor:
         pass
 
     def getVisualReturnTypes(self) -> List[str]:
-        pass
+        raise NotImplementedError("DSLProcessor is an abstract class and cannot be instantiated directly")
 
     def process(self, program: NamedProgram, input: dict, outputNames: List[str], preferredVisualReturnType: str) -> ProgramOutput:
-        pass
+        raise NotImplementedError("DSLProcessor is an abstract class and cannot be instantiated directly")
+
+    def runProgram(self, program: NamedProgram, input: ProgramInput, preferredVisualReturnType) -> ProgramOutput:
+        # Create pair of input and empty output
+        latestCode = program.codeVersions[-1]
+        latestExecutionHistory = program.executions[-1]
+        programOutput = self.process(latestCode, input["inputs"], program.outputs, preferredVisualReturnType)
+        latestExecutionHistory.append((input, programOutput))
+        return programOutput
+
+class EscapedSublanguageDSLProcessor(DSLProcessor):
+    def __init__(self, programDirectory: ProgramDirectory):
+        super().__init__()
+        self.programDirectory = programDirectory
 
     def __convertToLocalDSL__(self, data: Any) -> str:
-        pass
+        raise NotImplementedError("DSLProcessor is an abstract class and cannot be instantiated directly")
 
     def __preprocess__(self, code: str, input: dict, preferredVisualType: Optional[str] = None, startBlock: Optional[str] = "{{", endBlock: Optional[str] = "}}") -> Tuple[str, dict]:
         # Any part of the code in double-braces should be replaced with a pre-processed version of the code
@@ -93,12 +106,6 @@ class DSLProcessor:
                     # It's a literal value. Parse like a Python atomic literal
                     return eval(code_block)
 
-        def __preprocessBlock__(code_block: str) -> str:
-            # If the code block starts with "include", we need to preprocess the include and replace it with the included program's output
-            # If the code block has an equals sign, we need to preprocess the variable assignment and replace it with nothing
-            # If the code block is a standalone variable, we need to replace it with the variable's value
-            return self.__convertToLocalDSL__(processElement(code_block, variables))
-
         while startBlock in code:
             start = code.find(startBlock)
             end = code.find(endBlock)
@@ -106,16 +113,17 @@ class DSLProcessor:
                 break
             # Get the code between the double-braces
             code_block = code[start+2:end]
-            # Replace the double-brace block with the pre-processed version of the code
-            code = code[:start] + __preprocessBlock__(code_block) + code[end+2:]
+            # Replace the double-brace block with the sublanguage-processed version of the code
+            code = code[:start] + self.__convertToLocalDSL__(processElement(code_block, variables)) + code[end+2:]
 
         return code, variables
 
-    def runProgram(self, program: NamedProgram, input: ProgramInput, preferredVisualReturnType: Optional[str] = None) -> ProgramOutput:
-        # Create pair of input and empty output
-        latestCode = program.codeVersions[-1]
-        latestExecutionHistory = program.executions[-1]
-        programOutput = self.process(latestCode, input["inputs"], program.outputs, preferredVisualReturnType)
-        latestExecutionHistory.append((input, programOutput))
-        return programOutput
+    def __postProcess__(self, code: str, input: dict, outputNames: List[str], preferredVisualReturnType: str) -> ProgramOutput:
+        raise NotImplementedError("EscapedSublanguageDSLProcessor is an abstract class and cannot be instantiated directly")
 
+    def process(self, code: str, input: dict, outputNames: List[str], preferredVisualReturnType: str) -> ProgramOutput:
+        # Preprocess the document
+        preprocessedSourceCode, finalVariables = self.__preprocess__(code, input, preferredVisualReturnType)
+        return self.__postProcess__(preprocessedSourceCode, finalVariables, outputNames, preferredVisualReturnType)
+
+    

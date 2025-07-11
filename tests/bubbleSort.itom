@@ -38,5 +38,9 @@ Bonus: here's a picture of a unicorn on a rainbow:
 {{x}}
 {{x.data.topic}}
 
+{{average = include("testSpreadsheet", x=10)}}
+{{average}}
+# ANSWER: {{average.data.A8}}
+
 
 

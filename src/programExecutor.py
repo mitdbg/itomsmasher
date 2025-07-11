@@ -2,6 +2,7 @@ from programs import ProgramInput, ProgramOutput, ProgramDirectory, NamedProgram
 from dslProcessor import DSLProcessor
 from basicDslProcessor import BasicDSLProcessor
 from aiImageDslProcessor import AIImageProcessor
+from spreadsheetDslProcessor import SpreadsheetDSLProcessor
 from typing import Optional
 
 # ProgramExecutor is a class that executes a program of any kind
@@ -10,7 +11,8 @@ class ProgramExecutor:
         self.programDirectory = programDirectory
         self.availableDSLProcessors = {
             "basic": BasicDSLProcessor(programDirectory),
-            "aiimage": AIImageProcessor(programDirectory)
+            "aiimage": AIImageProcessor(programDirectory),
+            "spreadsheet": SpreadsheetDSLProcessor(programDirectory)
         }
 
     def executeProgram(self, programName: str, input: ProgramInput, preferredVisualReturnType: Optional[str] = None) -> ProgramOutput:
