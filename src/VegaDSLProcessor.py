@@ -1,4 +1,4 @@
-from dslProcessor import DSLProcessor
+from dslProcessor import DSLProcessor,EscapedSublanguageDSLProcessor
 from programs import ProgramOutput, ProgramDirectory
 from typing import List, Any
 import time
@@ -6,10 +6,9 @@ import base64
 import vl_convert as vlc
 
 # VegaDSLProcessor is a DSL processor for the Vega DSL
-class VegaDSLProcessor(DSLProcessor):
+class VegaDSLProcessor(EscapedSublanguageDSLProcessor):
     def __init__(self, programDirectory: ProgramDirectory):
-        super().__init__()
-        self.programDirectory = programDirectory
+        super().__init__(programDirectory)
 
     def getVisualReturnTypes(self) -> List[str]:
         return ["png", "html"]
@@ -47,7 +46,7 @@ class VegaDSLProcessor(DSLProcessor):
             raise ValueError(f"Invalid visual return type: {preferredVisualReturnType}")
 
         # Preprocess the document
-        vl_spec, finalVariables = self.__preprocess__(code, input, preferredVisualReturnType, startBlock="##", endBlock="##")
+        vl_spec, finalVariables = self.__preprocess__(code, input, preferredVisualReturnType, startBlock="-#", endBlock="#-")
         
         # convert the vl_spec to a raw python string
         vl_spec = r"{}".format(vl_spec)

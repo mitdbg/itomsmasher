@@ -104,7 +104,10 @@ class EscapedSublanguageDSLProcessor(DSLProcessor):
                     return variables[code_block]
                 else:
                     # It's a literal value. Parse like a Python atomic literal
-                    return eval(code_block)
+                    if code_block == "":
+                        return ""
+                    else:
+                        return eval(code_block)
 
         while startBlock in code:
             start = code.find(startBlock)

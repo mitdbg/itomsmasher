@@ -31,6 +31,6 @@
     "x": {"field": "a", "type": "nominal", "axis": {"labelAngle": 0}},
     "y": {"field": "b", "type": "quantitative"}
   },
-  "width" : ##width##,
-  "height" : ##height##
+  "width" : -#width#-,
+  "height" : -#height#-
 }
