@@ -107,7 +107,7 @@ class EscapedSublanguageDSLProcessor(DSLProcessor):
                     if code_block == "":
                         return ""
                     else:
-                        return eval(code_block)
+                        return str(eval(code_block))
 
         while startBlock in code:
             start = code.find(startBlock)

@@ -50,7 +50,7 @@ class VegaDSLProcessor(EscapedSublanguageDSLProcessor):
         
         # convert the vl_spec to a raw python string
         vl_spec = r"{}".format(vl_spec)
-        print("--",vl_spec,"--")
+        #print("--",vl_spec,"--")
 
         if preferredVisualReturnType == "html":
             outputData = {outputName: finalVariables[outputName] for outputName in outputNames}

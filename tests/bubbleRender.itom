@@ -1,0 +1,27 @@
+#@ dsl: vega-lite
+#@ description: a bar chart for displaying bubble Sort
+#@ input: numbers the numbers to plot
+
+{
+    "$schema": "https://vega.github.io/schema/vega-lite/v6.json",
+    "data": {
+        "values": [
+        {"numbers": -#numbers#- }
+        ]
+    },
+    "transform": [
+        {"flatten": ["numbers"]},
+        {"window": [{
+        "op": "rank",
+        "as": "rank"
+        }]}
+
+    ],
+    "mark": "bar",
+    "encoding": {
+        "x": {"field": "rank", "type": "nominal", "axis": {"labelAngle": 0}},
+        "y": {"field": "numbers", "type": "quantitative"}
+    },
+    "height": 100,
+    "width": 400
+}
