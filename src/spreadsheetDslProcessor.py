@@ -1,9 +1,8 @@
 from dslProcessor import DSLProcessor
 from programs import ProgramOutput, ProgramDirectory
-from typing import List, Any, Dict
+from typing import List, Dict
 import time
 import re
-import json
 from playwright.sync_api import sync_playwright
 
 
@@ -14,20 +13,6 @@ class SpreadsheetDSLProcessor(DSLProcessor):
     
     def getVisualReturnTypes(self) -> List[str]:
         return ["html", "png"]
-    
-    def __convertToLocalDSL__(self, data: Any) -> str:
-        if data is None:
-            return ""
-        elif isinstance(data, str):
-            return data
-        elif isinstance(data, (int, float)):
-            return str(data)
-        elif isinstance(data, list):
-            return json.dumps(data)
-        elif isinstance(data, dict):
-            return json.dumps(data)
-        else:
-            return str(data)
     
     def process(self, code: str, input: dict, outputNames: List[str], preferredVisualReturnType: str) -> ProgramOutput:
         if preferredVisualReturnType not in self.getVisualReturnTypes():
