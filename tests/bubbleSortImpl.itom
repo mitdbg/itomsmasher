@@ -1,0 +1,22 @@
+#@ dsl: javascript
+#@ input: originalArray the array to sort
+#@ input: steps number of steps to take
+#@ output: numbers
+#@ description: a bubble sort implementation
+
+() => {
+    function bubbleSort(arr, steps) {
+        for (let i = 0; i < steps; i++) {
+            for (let j = 0; j < arr.length - i - 1; j++) {
+                if (arr[j] > arr[j + 1]) {
+                    let temp = arr[j];
+                    arr[j] = arr[j + 1];
+                    arr[j + 1] = temp;
+                }
+            }
+        }
+        return arr;
+    }
+
+    return bubbleSort(-#originalArray#-, -#steps#-);
+}

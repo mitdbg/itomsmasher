@@ -1,0 +1,7 @@
+#@ dsl: basic
+#@ description: A tutorial itom all about bubble sort
+
+# Welcome to the world of Bubble Sort
+{{x = [5,3,8,4,2]}}
+{{x = include("bubbleSortImpl",originalArray=x,steps=2)}}
+{{x}}

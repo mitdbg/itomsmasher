@@ -4,6 +4,7 @@ from basicDslProcessor import BasicDSLProcessor
 from aiImageDslProcessor import AIImageProcessor
 from spreadsheetDslProcessor import SpreadsheetDSLProcessor
 from VegaDSLProcessor import VegaDSLProcessor
+from JavascriptDSLProcessor import JavascriptDSLProcessor
 from typing import Optional
 
 # ProgramExecutor is a class that executes a program of any kind
@@ -14,7 +15,8 @@ class ProgramExecutor:
             "basic": BasicDSLProcessor(programDirectory),
             "aiimage": AIImageProcessor(programDirectory),
             "spreadsheet": SpreadsheetDSLProcessor(programDirectory),
-            "vega-lite": VegaDSLProcessor(programDirectory)
+            "vega-lite": VegaDSLProcessor(programDirectory),
+            "javascript": JavascriptDSLProcessor(programDirectory)
         }
 
     def executeProgram(self, programName: str, input: ProgramInput, preferredVisualReturnType: Optional[str] = None) -> ProgramOutput:

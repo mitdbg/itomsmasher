@@ -10,37 +10,37 @@ Imagine we have a list of numbers:
 {{numbers = [5, 3, 8, 4, 2]}}
 {{numbers}}
 
+Visually, this would look like:
+{{x = include("bubbleRender",numbers=numbers)}}
+{{x}}
+
 Too bad they're out of order! What does bubble sort do?
 Imagine we start at positions 0 and 1.
 The first two numbers are numbers[0] and numbers[1]. Let's see what happens after one iteration of bubble sort.
 {{steps = 1}} 
+{{include("bubbleSortImpl",originalArray=numbers,steps=steps)}}
 
+Visually:
+{{x = include("bubbleRender",numbers=numbers)}}
+{{x}}
 
 We can see that the first two numbers are swapped.
  
 Now let's try the second step.
-{{newNumbers = 0}}
-{{newNumbers}}
-Here's the data:
+{{steps = 2}} 
+{{include("bubbleSortImpl",originalArray=numbers,steps=steps)}}
 
+Visually:
+{{x = include("bubbleRender",numbers=numbers)}}
+{{x}}
 
 We are now comparing 5 and 8. These are in the correct order, so we move on to the next pair.
-
-
 
 We are now comparing 8 and 4. These are in the wrong order, so we swap them.
 
 We can render the full bubble sort process by setting steps to the length of the list.
 
-Bonus: here's a picture of a unicorn on a rainbow:
 
-{{x = include("aiImagePrompt", topic="a unicorn on a rainbow.", size="small")}}
-{{x}}
-{{x.data.topic}}
-
-{{average = include("testSpreadsheet", x=10)}}
-{{average}}
-# ANSWER: {{average.data.A8}}
 
 
 
