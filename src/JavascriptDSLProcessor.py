@@ -51,7 +51,7 @@ class JavascriptDSLProcessor(EscapedSublanguageDSLProcessor):
         
         javascriptcode, finalVariables = self.__preprocess__(code, input, preferredVisualReturnType, startBlock="-#", endBlock="#-")
 
-        print(javascriptcode);
+        #print(javascriptcode);
 
         retcode = pm.eval(javascriptcode);
         val = retcode();
