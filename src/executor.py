@@ -14,8 +14,8 @@ if __name__ == "__main__":
     # Use a standard argparse for this
     parser = argparse.ArgumentParser(description="Execute a program")
     parser.add_argument("-run", type=str, help="The name of the program to execute")
-    parser.add_argument("-add", type=str, help="The name of the program to add")
-    parser.add_argument("-source", type=str, help="The source file for the program being added") 
+    # -add can accept multiple file paths, separated by spaces on the commandline 
+    parser.add_argument("-add", type=str, help="Source file of the program to add", nargs="+")
     parser.add_argument("-status", action="store_true", help="List all programs")
     parser.add_argument("-format", type=str, help="Preferred output format (png, html, etc)", default="png")
     parser.add_argument("-output", type=str, help="Output file path for visual rendering")
@@ -59,13 +59,10 @@ if __name__ == "__main__":
         for i, program in enumerate(programDirectory.getPrograms()):
             print(f"{i+1}. {program.name}: {program.description}")
     elif args.add:
-        if not args.source:
-            print("Error: -source is required when adding a program")
-            sys.exit(1)
-
-        programName = args.add
-        programFile = args.source
-        programDirectory.addNewProgram(programName, f"Loaded from file {programFile}", open(programFile).read(), refresh=True)
+        # ITerate through the multiple files provided at -add
+        for programFile in args.add:
+            programName = programFile.split("/")[-1].split(".")[0]
+            programDirectory.addNewProgram(programName, f"Loaded from file {programFile}", open(programFile).read(), refresh=True)
     else:
         print("Usage: python executor.py -run <program_name> or python executor.py -add <program_name> or python executor.py -refresh or python executor.py -status")
         sys.exit(1)
