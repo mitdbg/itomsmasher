@@ -1,6 +1,6 @@
 #@ dsl: vega-lite
 #@ description: a bar chart for displaying bubble Sort
-#@ input: numbers the numbers to plot
+#@ input: numbers
 
 {
     "$schema": "https://vega.github.io/schema/vega-lite/v6.json",

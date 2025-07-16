@@ -44,6 +44,33 @@ class EscapedSublanguageDSLProcessor(DSLProcessor):
 
         # PART 1.  Prepreocess brace inserts.  Assignments, variable accesses, and includes.
         def processElement(code_block: str, variables: dict) -> Any:
+
+            # Pattern to match include(programName) or include(programName, key1=val1, key2=val2, ...)
+            # Program name can be quoted or unquoted
+            # Key-value pairs are optional
+            includePattern = re.compile(
+                r"""include\(
+                    \s*
+                    (?P<progname>
+                        (?:"[^"]*"|'[^']*')  # Quoted string
+                        |
+                        [a-zA-Z_]\w*         # Unquoted variable name
+                    )
+                    \s*
+                    (?:,
+                        \s*
+                        (?P<params>
+                            [a-zA-Z_]\w*    # key
+                            \s*=\s*
+                            (?:[a-zA-Z_]\w* | "[^"]*" | '[^']*' | \d+)  # value
+                            (?:\s*,\s*[a-zA-Z_]\w*\s*=\s*(?:[a-zA-Z_]\w* | "[^"]*" | '[^']*' | \d+))*  # more k=v
+                        )
+                    )?
+                    \s*
+                    \)""",
+                re.VERBOSE
+            )
+
             # Check if the code block is a variable assignment of the form varname = value. Use regex to match this.
             # It's OK if there is no whitespace before or after the equals sign
             if re.match(r"^[a-zA-Z_][a-zA-Z0-9_]*[ \t]*=[ \t]*.*$", code_block):
@@ -78,18 +105,28 @@ class EscapedSublanguageDSLProcessor(DSLProcessor):
 
                 return val
 
-            # Check if the code block is of the form {{include("programName", input0=value0, input1=value1, input2=value2)}}, where we might have zero or more 'input' parameters.
-            # Use a regex to match this.
-            elif re.match(r'include\(\s*"([^"]+)"\s*(?:,\s*([^)]+))?\)', code_block):
+            # Check if the code block matches the include pattern
+            elif includePattern.match(code_block):
                 # It's an include statement
-                # Form of include is 'include("programName", input0=value0, input1=value1, input2=value2)'
-                match = re.match(r'include\(\s*"([^"]+)"\s*(?:,\s*([^)]+))?\)', code_block)
-                programName = match.group(1)
-                paramList = match.group(2)
+                # Form of include is 'include(programName, input0=value0, input1=value1, input2=value2)' or 'include(programName)'
+                # where programName is a quoted string or a variable name.
+                # The comma-separated list gives named parameter pairs
+                match = includePattern.fullmatch(code_block)
+                programName = match.group("progname")
+
+                if programName.startswith("\"") and programName.endswith("\""):
+                    programName = programName.strip("\"")
+                else:
+                    programName = processElement(programName, variables)
+
+                # Iterate through the matched parameters
+                # Handle case where there are no parameters
+                paramList = match.group("params")
                 if paramList is None:
                     paramList = []
                 else:
                     paramList = paramList.split(",")
+
                 # strip whitespace from all params
                 paramList = [p.strip() for p in paramList]
                 # parse the param list into a dictionary
@@ -103,7 +140,22 @@ class EscapedSublanguageDSLProcessor(DSLProcessor):
                 processedParamDict = {k: processElement(v, variables) for k, v in paramDict.items()}
                 inputData = {"startTimestamp": time.time(), "inputs": processedParamDict}
                 from programExecutor import ProgramExecutor
-                return ProgramExecutor(self.programDirectory).executeProgram(includedProgramName, inputData, preferredVisualType)
+                return ProgramExecutor(self.programDirectory).executeProgram(includedProgramName, inputData, preferredVisualType, inferInputs=True, callingProgramContext=code)
+            
+            # Check if it's a bracketed field access of the form x[y]
+            elif re.match(r"^[a-zA-Z_][a-zA-Z0-9_]*\[[a-zA-Z_][a-zA-Z0-9_]*\]$", code_block):
+                # It's a bracketed field access
+                # Split the code block into varName and then remainder (of zero or more dotted names)
+                lhs, rhs = code_block.split("[", 1)
+                lhs = lhs.strip()
+                rhs = rhs.strip("]")
+
+                val = variables[lhs]
+                rhsSide = processElement(rhs, variables)
+                if isinstance(val, ProgramOutput):
+                    return val.data()[rhsSide]
+                else:
+                    return val[rhsSide]
             else:
                 # It's a value. Either a variable name or a literal value.
                 if code_block in variables:

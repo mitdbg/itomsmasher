@@ -1,7 +1,7 @@
 #@ dsl: vega-lite
 #@ description: a basic bar chart
-#@ input: width width of the chart
-#@ input: height height of the chart
+#@ input: width
+#@ input: height
 
 {
   "$schema": "https://vega.github.io/schema/vega-lite/v6.json",

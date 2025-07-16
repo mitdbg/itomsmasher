@@ -1,0 +1,43 @@
+#@ dsl: basic
+#@ description: A basic grid of items
+#@ input: programName
+
+{{programInfo = __programs__[programName]}}
+
+
+::grid rows=1 cols=8
+
+
+[cell align=center valign=middle]
+
+[cell align=left span=6 valign=middle] 
+
+::panel class=panel
+::grid rows=1 cols=8
+[cell align=flex-start valign=middle span=7]
+
+::panel class=block
+# {{programInfo.name}}
+{{programInfo.description}}
+{{programInfo.inputDescription}}
+::endpanel
+
+[cell align=center valign=middle span=1]
+Author: __Unknown__
+::endgrid
+::endpanel
+::endgrid
+
+
+::grid rows=1 cols=8
+[cell align=center valign=middle]
+
+[cell align=flex-start span=6 valign=middle]
+::panel
+{{include(programName)}}
+::endpanel
+
+[cell align=center valign=middle]
+::endgrid
+
+
