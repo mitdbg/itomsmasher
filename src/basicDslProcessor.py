@@ -45,7 +45,23 @@ class BasicDSLProcessor(EscapedSublanguageDSLProcessor):
 
     def __postProcess__(self, postprocessedSourceCode: str, finalVariables: dict, outputNames: List[str], preferredVisualReturnType: str) -> ProgramOutput:
         "This postprocesses the source code (after the braced sublanguage is processed). In this case, it's processed as markdown."
-        html = markdown(postprocessedSourceCode)
+
+        # FINAL STEP: Add some style info to the code.
+        styleHeader = """<style>
+            body {
+                background-color: rgb(246,190,23);
+            }
+            .panel {
+                background-color: rgb(229,228,228);
+                border-radius: 12px;
+                padding: 1em;
+                margin: 1em 0;
+                box-shadow: 0 3px 9px rgba(0,0,0,0.08);
+            }
+            </style>"""
+
+        styledSourceCode = styleHeader + "\n" + postprocessedSourceCode
+        html = markdown(styledSourceCode)
 
         if preferredVisualReturnType == "html":
             outputData = {outputName: finalVariables[outputName] for outputName in outputNames}

@@ -275,21 +275,6 @@ class EscapedSublanguageDSLProcessor(DSLProcessor):
 
         code = "\n".join(outputCode)
 
-        # FINAL STEP: Add some style info to the code.
-        styleInfo = """<style>
-            body {
-                background-color: rgb(246,190,23);
-            }
-            .panel {
-                background-color: rgb(229,228,228);
-                border-radius: 12px;
-                padding: 1em;
-                margin: 1em 0;
-                box-shadow: 0 3px 9px rgba(0,0,0,0.08);
-            }
-            </style>"""
-
-        code = styleInfo + "\n" + code
         return code, variables
 
     def __postProcess__(self, code: str, input: dict, outputNames: List[str], preferredVisualReturnType: str) -> ProgramOutput:
