@@ -31,6 +31,8 @@ class EscapedSublanguageDSLProcessor(DSLProcessor):
     def __convertToLocalDSL__(self, data: Any) -> str:
         raise NotImplementedError("DSLProcessor is an abstract class and cannot be instantiated directly")
 
+
+
     def __preprocess__(self, code: str, input: dict, preferredVisualType: Optional[str] = None, startBlock: Optional[str] = "{{", endBlock: Optional[str] = "}}") -> Tuple[str, dict]:
         # Any part of the code in double-braces should be replaced with a pre-processed version of the code
         # Let's start by iterating through the code and finding all double-brace blocks
@@ -39,6 +41,8 @@ class EscapedSublanguageDSLProcessor(DSLProcessor):
 
         # initialize variables with contents of input (but make a copy)
         variables = input.copy()
+
+        # PART 1.  Prepreocess brace inserts.  Assignments, variable accesses, and includes.
         def processElement(code_block: str, variables: dict) -> Any:
             # Check if the code block is a variable assignment of the form varname = value. Use regex to match this.
             # It's OK if there is no whitespace before or after the equals sign
@@ -131,7 +135,7 @@ class EscapedSublanguageDSLProcessor(DSLProcessor):
         # ::endgrid
         #
 
-        # A cell might be described over multiple lines. We need to handle this.
+        # PART 2.  Parse the DSL blocks (grid and panel)
         def parse_grid_block(header_line, lines):
             grid_meta = {}
             header_match = re.match(r"::grid\s+(.*)", header_line)
@@ -143,6 +147,8 @@ class EscapedSublanguageDSLProcessor(DSLProcessor):
             cellAttrs = None
             for line in lines:
                 line = line.strip()
+                if len(line) == 0:
+                    continue
                 if line.startswith('[cell'):
                     if cellContents is not None:
                         cells.append((cellContents.strip(), cellAttrs))
@@ -158,6 +164,8 @@ class EscapedSublanguageDSLProcessor(DSLProcessor):
                     cellAttrs = attrs
                     cellContents = content.strip()
                 else:
+                    if cellContents is None:
+                        raise ValueError("Must start a cell with [cell]")
                     cellContents += "\n" + line
 
             if cellContents is not None:
@@ -165,9 +173,11 @@ class EscapedSublanguageDSLProcessor(DSLProcessor):
 
             return grid_meta, cells
 
+        # MARKDOWN RENDERING
         def render_markdown(content):
             return mdlib.markdown(content.strip(), extensions=["extra"])
 
+        # GRID HANDLING, called when a grid block is closed.
         def render_grid_as_html(grid_meta, cells):
             cols = int(grid_meta.get("cols", "1"))
 
@@ -205,27 +215,81 @@ class EscapedSublanguageDSLProcessor(DSLProcessor):
             html.append('</div>')
             return "\n".join(html)
 
+        # PANEL HANDLING, called when a panel block is closed.
+        def render_panel_as_html(header, lines):
+            renderedMd = render_markdown("\n" + "\n".join(lines))
+            return "<div class='panel'>" + renderedMd + "</div>"
+
+
         outputCode = []
-        inGrid = False
-        gridheader = ""
-        gridlines = []
+        gridHeaders = []
+        gridLines = []
+        panelHeaders = []
+        panelLines = []
+        currentBlock = []
+
         for line in code.split("\n"):
             if line.strip().startswith("::grid"):
-                inGrid = True
-                gridheader = line.strip()
-                gridlines = []
+                currentBlock.append("grid")
+                gridHeaders.append(line.strip())
+                gridLines.append([])
             elif line.strip().startswith("::endgrid"):
-                inGrid = False
-                meta, cells = parse_grid_block(gridheader, gridlines)
+                if currentBlock[-1] != "grid":
+                    raise ValueError("::endgrid found without a corresponding ::grid")
+                meta, cells = parse_grid_block(gridHeaders[-1], gridLines[-1])
+                currentBlock.pop()
+                gridLines.pop()
+                gridHeaders.pop()
                 html = render_grid_as_html(meta, cells)
-                outputCode.append(html)
-            elif inGrid:
-                gridlines.append(line.strip())
+                if len(currentBlock) > 0:
+                    if currentBlock[-1] == "grid":
+                        gridLines[-1].append(html)
+                    elif currentBlock[-1] == "panel":
+                        panelLines[-1].append(html)
+                else:
+                    outputCode.append(html)
+            elif line.strip().startswith("::panel"):
+                currentBlock.append("panel")
+                panelHeaders.append(line.strip())
+                panelLines.append([])
+            elif line.strip().startswith("::endpanel"):
+                if currentBlock[-1] != "panel":
+                    raise ValueError("::endpanel found without a corresponding ::panel")
+                html = render_panel_as_html(panelHeaders[-1], panelLines[-1])
+                currentBlock.pop()
+                panelLines.pop()
+                panelHeaders.pop()
+                if len(currentBlock) > 0:
+                    if currentBlock[-1] == "grid":
+                        gridLines[-1].append(html)
+                    elif currentBlock[-1] == "panel":
+                        panelLines[-1].append(html)
+                else:
+                    outputCode.append(html)
+            elif len(currentBlock) > 0 and currentBlock[-1] == "grid":
+                gridLines[-1].append(line.strip())
+            elif len(currentBlock) > 0 and currentBlock[-1] == "panel":
+                panelLines[-1].append(line.strip())
             else:
                 outputCode.append(line.strip())
 
         code = "\n".join(outputCode)
 
+        # FINAL STEP: Add some style info to the code.
+        styleInfo = """<style>
+            body {
+                background-color: rgb(246,190,23);
+            }
+            .panel {
+                background-color: rgb(229,228,228);
+                border-radius: 12px;
+                padding: 1em;
+                margin: 1em 0;
+                box-shadow: 0 3px 9px rgba(0,0,0,0.08);
+            }
+            </style>"""
+
+        code = styleInfo + "\n" + code
         return code, variables
 
     def __postProcess__(self, code: str, input: dict, outputNames: List[str], preferredVisualReturnType: str) -> ProgramOutput:

@@ -1,0 +1,38 @@
+#@ dsl: basic
+#@ description: A basic grid of items
+
+# This document tests the grid DSL.
+It tests the following:
+
+- Centering text
+- Aligning text
+- Valigning text
+- Spanning cells
+- Including itoms (bar charts, etc.)
+
+::grid rows=1 cols=7
+[cell align=center valign=middle]Foo
+
+[cell align=left span=5 valign=middle] 
+
+::panel
+# Markdown Header
+## Subheader 1
+### Subsubheader 1
+### Subsubheader 2
+## Subheader 2
+::endpanel
+
+
+[cell align=center valign=middle]  
+
+::grid rows=2 cols=2
+[cell align=center valign=middle] Bar1
+[cell align=center valign=middle] Baz2
+[cell align=center valign=middle] Qux3
+[cell align=center valign=middle] Quux4
+::endgrid
+
+::endgrid
+
+
