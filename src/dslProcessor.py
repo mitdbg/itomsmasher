@@ -2,6 +2,7 @@ from programs import ProgramInput, ProgramOutput, ProgramDirectory, NamedProgram
 import time, os, base64
 import re
 from typing import Optional, List, Tuple, Any
+import markdown as mdlib
 
 # DSLProcessor is a generic superclass for all DSL processors
 class DSLProcessor:
@@ -120,6 +121,110 @@ class EscapedSublanguageDSLProcessor(DSLProcessor):
             code_block = code[start+2:end]
             # Replace the double-brace block with the sublanguage-processed version of the code
             code = code[:start] + self.__convertToLocalDSL__(processElement(code_block, variables)) + code[end+2:]
+
+        # Process the code to handle structures of the following form:
+        # ::grid rows=2 cols=3
+        # [cell] Welcome to the dashboard!
+        # [cell span=2] [Plot id="vis1"]
+        # [cell align=center valign=middle bgcolor=#f0f0f0] [Button text="Run"]
+        # [cell colspan=3] [TextBox name="notes" rows=4]
+        # ::endgrid
+        #
+
+        # A cell might be described over multiple lines. We need to handle this.
+        def parse_grid_block(header_line, lines):
+            grid_meta = {}
+            header_match = re.match(r"::grid\s+(.*)", header_line)
+            if header_match:
+                grid_meta = dict(re.findall(r'(\w+)=([^\s]+)', header_match.group(1)))
+
+            cells = []
+            cellContents = None
+            cellAttrs = None
+            for line in lines:
+                line = line.strip()
+                if line.startswith('[cell'):
+                    if cellContents is not None:
+                        cells.append((cellContents.strip(), cellAttrs))
+                        cellContents = None
+                        cellAttrs = None
+
+                    attr_match = re.match(r'\[cell([^\]]*)\](.*)', line)
+                    if not attr_match:
+                        continue
+                    attr_str, content = attr_match.groups()
+                    attrs = dict(re.findall(r'(\w+)=(".*?"|\S+)', attr_str))
+                    attrs = {k: v.strip('"') for k, v in attrs.items()}
+                    cellAttrs = attrs
+                    cellContents = content.strip()
+                else:
+                    cellContents += "\n" + line
+
+            if cellContents is not None:
+                cells.append((cellContents.strip(), cellAttrs))
+
+            return grid_meta, cells
+
+        def render_markdown(content):
+            return mdlib.markdown(content.strip(), extensions=["extra"])
+
+        def render_grid_as_html(grid_meta, cells):
+            cols = int(grid_meta.get("cols", "1"))
+
+            html = []
+            html.append(f'<div class="grid" style="display: grid; grid-template-columns: repeat({cols}, 1fr); gap: 1em;">')
+
+            for content, attrs in cells:
+                span = int(attrs.get("span", attrs.get("colspan", "1")))
+                align = attrs.get("align", "left")
+                valign = attrs.get("valign", "top")
+
+                # Map valign to corresponding CSS flex alignment
+                valign_map = {
+                    "top": "flex-start",
+                    "middle": "center",
+                    "bottom": "flex-end"
+                }
+                flex_align = valign_map.get(valign, "flex-start")  # default to top
+
+                styles = [
+                    f"grid-column: span {span};",
+                    f"display: flex;",
+                    f"align-items: {flex_align};",
+                    f"justify-content: {align if align in ['flex-start', 'center', 'flex-end'] else 'center'};",
+                    f"text-align: {align};"
+                ]
+
+                if "bgcolor" in attrs:
+                    styles.append(f"background-color: {attrs['bgcolor']};")
+
+                renderedMd = render_markdown(content)
+                style_attr = " ".join(styles)
+                html.append(f'  <div class="cell" style="{style_attr}">{renderedMd}</div>')
+
+            html.append('</div>')
+            return "\n".join(html)
+
+        outputCode = []
+        inGrid = False
+        gridheader = ""
+        gridlines = []
+        for line in code.split("\n"):
+            if line.strip().startswith("::grid"):
+                inGrid = True
+                gridheader = line.strip()
+                gridlines = []
+            elif line.strip().startswith("::endgrid"):
+                inGrid = False
+                meta, cells = parse_grid_block(gridheader, gridlines)
+                html = render_grid_as_html(meta, cells)
+                outputCode.append(html)
+            elif inGrid:
+                gridlines.append(line.strip())
+            else:
+                outputCode.append(line.strip())
+
+        code = "\n".join(outputCode)
 
         return code, variables
 
