@@ -18,12 +18,12 @@ playwright install
 To add a new program to the local program directory:
 
 ```bash
-python src/executor.py -add <program_name> -source <source_file>
+python src/cmdline.py -add <program_name> -source <source_file>
 ```
 
 Example:
 ```bash
-python src/executor.py -add bubbleSort -source tests/bubbleSort.itom
+python src/cmdline.py -add bubbleSort -source tests/bubbleSort.itom
 ```
 
 ### Running a program
@@ -31,12 +31,12 @@ python src/executor.py -add bubbleSort -source tests/bubbleSort.itom
 To run a program by name with specified output format and file:
 
 ```bash
-python src/executor.py -run <program_name> -output <output_file> -format <format>
+python src/cmdline.py -run <program_name> -output <output_file> -format <format>
 ```
 
 Example:
 ```bash
-python src/executor.py -run bubbleSort -output bubbleSort.png -format png
+python src/cmdline.py -run bubbleSort -output bubbleSort.png -format png
 ```
 
 Supported formats: `png`, `html`
@@ -48,7 +48,7 @@ Keep in mind you will have to add all included programs in order to execute a to
 To see all available programs:
 
 ```bash
-python src/executor.py -status
+python src/cmdline.py -status
 ```
 
 ## DSL Types and Examples
@@ -73,8 +73,8 @@ After sorting: {{include("bubbleSortAlgorithm", numbers)}}
 
 **Usage**:
 ```bash
-python src/executor.py -add bubbleSort -source tests/bubbleSort.itom
-python src/executor.py -run bubbleSort -output bubbleSort.png -format png
+python src/cmdline.py -add bubbleSort -source tests/bubbleSort.itom
+python src/cmdline.py -run bubbleSort -output bubbleSort.png -format png
 ```
 
 ### 2. AI Image DSL 
@@ -94,8 +94,8 @@ A beautiful {{subject}} in {{style}} style with neon lights and flying cars
 ```bash
 # Requires OPENAI_API_KEY environment variable
 export OPENAI_API_KEY="your-api-key-here"
-python src/executor.py -add aiImage -source tests/aiImagePrompt.itom
-python src/executor.py -run aiImage -output aiImage.png -format png
+python src/cmdline.py -add aiImage -source tests/aiImagePrompt.itom
+python src/cmdline.py -run aiImage -output aiImage.png -format png
 ```
 
 ### 3. Spreadsheet DSL
@@ -125,8 +125,8 @@ C6: =C2-C4
 
 **Usage**:
 ```bash
-python src/executor.py -add spreadsheet -source tests/testSpreadsheet.itom
-python src/executor.py -run spreadsheet -output spreadsheet.html -format html
+python src/cmdline.py -add spreadsheet -source tests/testSpreadsheet.itom
+python src/cmdline.py -run spreadsheet -output spreadsheet.html -format html
 ```
 
 **Supported Functions**:
