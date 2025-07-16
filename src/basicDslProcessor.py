@@ -50,6 +50,10 @@ class BasicDSLProcessor(EscapedSublanguageDSLProcessor):
         styleHeader = """<style>
             body {
                 background-color: rgb(246,190,23);
+                margin: 0;
+            }
+            h1, p {
+                margin: 0.25em 0;
             }
             .panel {
                 background-color: rgb(229,228,228);
@@ -57,6 +61,25 @@ class BasicDSLProcessor(EscapedSublanguageDSLProcessor):
                 padding: 1em;
                 margin: 1em 0;
                 box-shadow: 0 3px 9px rgba(0,0,0,0.08);
+                font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+                line-height: 1.2;
+            }
+            .tightpanel {
+                background-color: rgb(229,228,228);
+                border-radius: 12px;
+                padding: 1em;
+                margin: 1em 0;
+                box-shadow: 0 3px 9px rgba(0,0,0,0.08);
+                font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+                line-height: 1;
+            }
+            .tightblock {
+                padding: 0.5em;
+                margin: 1em 0;
+            }
+            .block {
+                padding: 1em;
+                margin: 1em 0;
             }
             </style>"""
 

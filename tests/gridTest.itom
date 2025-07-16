@@ -11,7 +11,8 @@ It tests the following:
 - Including itoms (bar charts, etc.)
 
 ::grid rows=1 cols=7
-[cell align=center valign=middle]Foo
+[cell align=center valign=middle]
+{{include("barChart", width=100,height=100)}}
 
 [cell align=left span=5 valign=middle] 
 

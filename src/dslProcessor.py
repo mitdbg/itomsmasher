@@ -182,7 +182,7 @@ class EscapedSublanguageDSLProcessor(DSLProcessor):
             cols = int(grid_meta.get("cols", "1"))
 
             html = []
-            html.append(f'<div class="grid" style="display: grid; grid-template-columns: repeat({cols}, 1fr); gap: 1em;">')
+            html.append(f'<div class="grid" style="display: grid; grid-template-columns: repeat({cols}, 1fr); gap: 0.25em;">')
 
             for content, attrs in cells:
                 span = int(attrs.get("span", attrs.get("colspan", "1")))
@@ -217,8 +217,16 @@ class EscapedSublanguageDSLProcessor(DSLProcessor):
 
         # PANEL HANDLING, called when a panel block is closed.
         def render_panel_as_html(header, lines):
+            # parse the header. It has the same form as grid header
+            header_match = re.match(r"::panel\s+(.*)", header)
+            if header_match:
+                header_meta = dict(re.findall(r'(\w+)=([^\s]+)', header_match.group(1)))
+            else:
+                header_meta = {}
+
+            classLabel = header_meta.get("class", "panel")
             renderedMd = render_markdown("\n" + "\n".join(lines))
-            return "<div class='panel'>" + renderedMd + "</div>"
+            return f"<div class='{classLabel}'>{renderedMd}</div>"
 
 
         outputCode = []
