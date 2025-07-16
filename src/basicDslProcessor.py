@@ -38,7 +38,7 @@ class BasicDSLProcessor(EscapedSublanguageDSLProcessor):
             #It's not a ProgramOutput. It's just a dictionary, so convert to a string representation
             return "\n".join([f"{key}: {value}" for key, value in data.items()])
         elif isinstance(data, list):
-            return "\n".join([self.__convertToLocalDSL__(item) for item in data])
+            return "[" + ",".join([self.__convertToLocalDSL__(item) for item in data]) + "]"
         else:
             # What else could it be?
             raise ValueError(f"Invalid return type during markdown preprocessing: {data}")

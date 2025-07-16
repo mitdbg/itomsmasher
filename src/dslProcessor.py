@@ -40,7 +40,8 @@ class EscapedSublanguageDSLProcessor(DSLProcessor):
         variables = input.copy()
         def processElement(code_block: str, variables: dict) -> Any:
             # Check if the code block is a variable assignment of the form varname = value. Use regex to match this.
-            if re.match(r"^[a-zA-Z_][a-zA-Z0-9_]* = .*$", code_block):
+            # It's OK if there is no whitespace before or after the equals sign
+            if re.match(r"^[a-zA-Z_][a-zA-Z0-9_]*[ \t]*=[ \t]*.*$", code_block):
                 # It's a variable assignment
                 # Split the code block into lhs and rhs using the leftmost equals sign
                 lhs, rhs = code_block.split("=", 1)
@@ -108,7 +109,6 @@ class EscapedSublanguageDSLProcessor(DSLProcessor):
                         return ""
                     else:
                         test = str(eval(code_block))
-                        print("test:"+test)
                         return test
 
         while startBlock in code:

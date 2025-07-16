@@ -36,7 +36,7 @@ class VegaDSLProcessor(EscapedSublanguageDSLProcessor):
             #It's not a ProgramOutput. It's just a dictionary, so convert to a string representation
             return "\n".join([f"{key}: {value}" for key, value in data.items()])
         elif isinstance(data, list):
-            return "\n".join([self.__convertToLocalDSL__(item) for item in data])
+            return "[" + ",".join([self.__convertToLocalDSL__(item) for item in data]) + "]"
         else:
             # What else could it be?
             raise ValueError(f"Invalid return type during markdown preprocessing: {data}")
@@ -50,14 +50,17 @@ class VegaDSLProcessor(EscapedSublanguageDSLProcessor):
         
         # convert the vl_spec to a raw python string
         vl_spec = r"{}".format(vl_spec)
-        print("--",vl_spec,"--")
+        #print("--",vl_spec,"--")
 
         if preferredVisualReturnType == "html":
+            png_data = vlc.vegalite_to_png(vl_spec=vl_spec, scale=2)
             outputData = {outputName: finalVariables[outputName] for outputName in outputNames}
-            return ProgramOutput(time.time(), "html", vl_spec, outputData)
-        
+            return ProgramOutput(time.time(), 
+                                 "html", 
+                                 # Fix up the png data to be a base64 encoded string
+                                 f"<img src='data:image/png;base64,{base64.b64encode(png_data).decode('utf-8')}' />",
+                                 outputData)
         elif preferredVisualReturnType == "png":
-
             png_data = vlc.vegalite_to_png(vl_spec=vl_spec, scale=2)
             outputData = {outputName: finalVariables[outputName] for outputName in outputNames}
             return ProgramOutput(time.time(), "png", png_data, outputData)
