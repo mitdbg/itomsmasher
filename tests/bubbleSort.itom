@@ -44,7 +44,7 @@ We can render the full bubble sort process by setting steps to the length of the
 {{newnums}}
 
 Visually:
-{{x = include("bubbleRender",numbers=newnums)}}
+{{x = include("bubbleRender",numbers=newnums.data.numbers)}}
 {{x}}
 
 
