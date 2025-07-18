@@ -10,11 +10,13 @@ class ProgramInput(TypedDict):
 
 # ProgramOutput is a class that represents the output of a program
 class ProgramOutput:
-    def __init__(self, endTimestamp: int, visualReturnType: str, visualOutput: Any, dataOutputs: TypedDict):
+    def __init__(self, endTimestamp: int, visualReturnType: str, visualOutput: Any, dataOutputs: TypedDict, succeeded: bool=True, errorMessage: str=""):
         self.__endTimestamp = endTimestamp
         self.__visualReturnType = visualReturnType
         self.__visualOutput = visualOutput
         self.__dataOutputs = dataOutputs
+        self.__succeeded = succeeded
+        self.__errorMessage = errorMessage
 
     def endTimestamp(self) -> int:
         return self.__endTimestamp
@@ -27,6 +29,12 @@ class ProgramOutput:
     
     def data(self) -> TypedDict:
         return self.__dataOutputs
+    
+    def succeeded(self) -> bool:
+        return self.__succeeded
+    
+    def errorMessage(self) -> str:
+        return self.__errorMessage
 
 # NamedProgram is a class that represents a program with a 
 # name, description, DSL ID, code versions, inputs, and outputs.
@@ -35,8 +43,8 @@ class NamedProgram:
                  name: str, 
                  description: str,
                  dslId: str,
-                 inputs: List[str],
-                 outputs: List[str],
+                 inputs: List[Tuple[str, dict]],
+                 outputs: List[Tuple[str, dict]],
                  rawCodeVersions: List[str],
                  codeVersions: List[str],
                  executions: List[List[Tuple[ProgramInput, ProgramOutput]]]):

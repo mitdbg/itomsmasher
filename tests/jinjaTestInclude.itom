@@ -1,0 +1,9 @@
+#@ dsl: model2
+#@ description: A basic test of an included program for the Jinja DSL revision
+#@ input: a
+#@ input: b  
+
+### COMPUTING: {{a}} + {{b}} == {{a+b}}
+
+
+{{return("result", a+b)}}  

@@ -1,0 +1,31 @@
+#@ dsl: model2
+#@ description: A basic test of the Jinja DSL processor
+
+# Top-level Header
+
+{% set results = include("jinjaTestInclude", a=10, b=20) %}
+
+{% if results.succeeded %}
+# Answer is: {{results.data.result}}
+
+{{results.visual}}
+
+{% else %}
+    {{results.error}}
+{% endif %}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

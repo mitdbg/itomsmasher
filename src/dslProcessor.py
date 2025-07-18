@@ -3,6 +3,7 @@ import time, os, base64
 import re
 from typing import Optional, List, Tuple, Any
 import markdown as mdlib
+import copy
 
 # DSLProcessor is a generic superclass for all DSL processors
 class DSLProcessor:
@@ -12,7 +13,7 @@ class DSLProcessor:
     def getVisualReturnTypes(self) -> List[str]:
         raise NotImplementedError("DSLProcessor is an abstract class and cannot be instantiated directly")
 
-    def process(self, program: NamedProgram, input: dict, outputNames: List[str], preferredVisualReturnType: str) -> ProgramOutput:
+    def process(self, code: str, input: dict, outputNames: List[str], preferredVisualReturnType: str) -> ProgramOutput:
         raise NotImplementedError("DSLProcessor is an abstract class and cannot be instantiated directly")
 
     def runProgram(self, program: NamedProgram, input: ProgramInput, preferredVisualReturnType) -> ProgramOutput:
@@ -22,6 +23,86 @@ class DSLProcessor:
         programOutput = self.process(latestCode, input["inputs"], program.outputs, preferredVisualReturnType)
         latestExecutionHistory.append((input, programOutput))
         return programOutput
+
+
+class Model2DSLProcessor(DSLProcessor):
+    def __init__(self, programDirectory: ProgramDirectory):
+        super().__init__()
+        self.programDirectory = programDirectory
+
+    def getVisualReturnTypes(self) -> List[str]:
+        return ["html"]
+
+    # The semantics of this DSL are as follows:
+    # 1. Every module is purely functional
+    # 2. Every module returns (1) a structured result, and (2) a visua result that can be rendered onscreen, (3) success or error code
+    # 3. There is no interesting runtime state. A module runs to completion. If the module code changes, the module should be re-run.
+    # 4. There is no interesting interactivity. All interactivity is at the interface level and anything permanent is a code change.
+    #    (That is to say, there is no database or other form of state)
+    # 5. Every module should be able to run to partial completion. An error does not bring it to a halt, but just makes the output worse
+    def process(self, code: str, input: dict, outputNames: List[str], preferredVisualReturnType: str) -> ProgramOutput:
+        return self.jinjaProcess(code, input, preferredVisualReturnType)
+    
+    def jinjaProcess(self, code: str, input: dict, preferredVisualReturnType: str) -> ProgramOutput:
+        # Use Jinja to process the document
+        from jinja2 import Environment, BaseLoader, pass_context
+
+        outputState = {}
+        inputState = copy.deepcopy(input)
+        env = Environment(loader=BaseLoader)
+
+        # The return_variable function is used to return results from a module invocation
+        @pass_context
+        def return_variable(ctx, name, value):
+            outputState[name] = value
+            return ""
+
+        # The include function is used to execute a module and obtain its returned results
+        @pass_context
+        def includeFn(ctx, *args, **kwargs) -> dict:
+            if len(args) < 1:
+                return dict(error="ERROR: includeFn must indicate programName",
+                            succeeded=False)
+
+            programName = args[0]
+            try:
+                program = self.programDirectory.getProgram(programName)
+            except ValueError as e:
+                return dict(error="ERROR: includeFn could not find program: " + programName,
+                            succeeded=False)
+
+            moduleInputs = {}
+            providedInputs = dict(kwargs)
+            for inputName in program.inputs:
+                if inputName not in providedInputs:
+                    return dict(error="ERROR: includeFn could not find input: " + inputName,
+                                succeeded=False)
+                moduleInputs[inputName] = providedInputs[inputName]
+
+            from programExecutor import ProgramExecutor
+            programOutput = ProgramExecutor(self.programDirectory).executeProgram(programName, 
+                                                                                  {"startTimestamp": time.time(), 
+                                                                                   "inputs": moduleInputs}, 
+                                                                                   preferredVisualReturnType)
+            if not programOutput.succeeded():
+                return dict(error="ERROR: program " + programName + " failed with message: " + programOutput.errorMessage(),
+                            succeeded=False)
+            else:
+                return dict(data=programOutput.data(),
+                            visual=str(programOutput.viz()),
+                            succeeded=True)
+
+        env.globals["include"] = includeFn
+        env.globals["return"] = return_variable
+        for inputName, v in inputState.items():
+            env.globals[inputName] = v
+
+        template = env.from_string(code)
+        outputText = template.render()
+        visualOutput = mdlib.markdown(outputText)
+        return ProgramOutput(time.time(), "html", visualOutput, outputState)
+
+
 
 class EscapedSublanguageDSLProcessor(DSLProcessor):
     def __init__(self, programDirectory: ProgramDirectory):
@@ -345,4 +426,3 @@ class EscapedSublanguageDSLProcessor(DSLProcessor):
         preprocessedSourceCode, finalVariables = self.__preprocess__(code, input, preferredVisualReturnType)
         return self.__postProcess__(preprocessedSourceCode, finalVariables, outputNames, preferredVisualReturnType)
 
-    
