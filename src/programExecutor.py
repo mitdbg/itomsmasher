@@ -18,7 +18,7 @@ class ProgramExecutor:
             "spreadsheet": SpreadsheetDSLProcessor(programDirectory),
             "vega-lite": VegaDSLProcessor(programDirectory),
             "javascript": JavascriptDSLProcessor(programDirectory),
-            "basic": Model2DSLProcessor(programDirectory)
+            "basic": BasicDSLProcessor(programDirectory)
         }
 
     def executeProgram(self, programName: str, input: ProgramInput, preferredVisualReturnType: Optional[str] = None, inferInputs: bool = False, callingProgramContext: Optional[str] = None) -> ProgramOutput:

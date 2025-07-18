@@ -27,13 +27,13 @@ class DSLProcessor:
         return programOutput
 
 
-class Model2DSLProcessor(DSLProcessor):
+class BasicDSLProcessor(DSLProcessor):
     def __init__(self, programDirectory: ProgramDirectory):
         super().__init__()
         self.programDirectory = programDirectory
 
     def getVisualReturnTypes(self) -> List[str]:
-        return ["html"]
+        return ["html", "png"]
 
     # The semantics of this DSL are as follows:
     # 1. Every module is purely functional
