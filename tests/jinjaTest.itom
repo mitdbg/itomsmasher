@@ -14,6 +14,21 @@
     {{results.error}}
 {% endif %}
 
+{% call macros.render_grid([1, 8, 1]) %}
+::cell
+# Content for main block
+::cell
+{% endcall %}
+
+
+{% call macros.panel() %}
+# Markdown Header
+## Subheader 1
+### Subsubheader 1
+### Subsubheader 2
+## Subheader 2
+{% endcall %}
+
 
 
 
