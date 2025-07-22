@@ -41,7 +41,7 @@ class SlideVideoDSLProcessor(BasicDSLProcessor):
  
         client = OpenAI()
 
-        speech_cache = "speech_cache"
+        speech_cache = ".speech_cache"
         # create a speech_cache folder if it doesn't exist
         if not os.path.exists(speech_cache):
             os.makedirs(speech_cache)

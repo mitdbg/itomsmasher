@@ -6,6 +6,7 @@ __pycache__/
 node_modules/
 node_modules/*
 .programs
+.speech_cache
 
 e2e
 tests-examples
