@@ -9,6 +9,8 @@ Install dependencies and browsers:
 ```bash
 pip install -r requirements.txt
 playwright install
+
+brew install marp-cli
 ```
 
 ## Usage
@@ -136,6 +138,28 @@ python src/cmdline.py -run spreadsheet -output spreadsheet.html -format html
 - `MIN(range)` - Minimum value in a range
 - Basic arithmetic with cell references
 
+### Video Slide Decks
+Use the markdown format as described in [Marp](https://marp.app/)
+
+Slides are split using ---, e.g.:
+
+```
+{% set name = 'Bob' %}
+
+# slide 1
+- Hi {{name}}
+
+<!-- speaker notes will be converted to voice. Isn't that cool {{name}}? -->
+----
+
+# slide 2
+```
+
+**Usage**
+```bash
+python src/cmdline.py -add tests/VideoSlideTest.itom
+python src/cmdline.py -run VideoSlideTest -output temp.mp4 -format mp4
+```
 ## Test Files
 
 - `tests/bubbleSort.itom` - Interactive bubble sort documentation (Basic DSL)

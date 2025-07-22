@@ -52,6 +52,9 @@ if __name__ == "__main__":
         elif args.format == "md":
             with open(args.output, "w") as f:
                 f.write(programOutput.viz())
+        elif args.format == "mp4":
+            with open(args.output, "wb") as f:
+                f.write(programOutput.viz())
         else:
             raise ValueError(f"Invalid format: {args.format}")
     elif args.status:
