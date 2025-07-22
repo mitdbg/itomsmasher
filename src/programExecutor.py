@@ -1,5 +1,5 @@
 from programs import ProgramInput, ProgramOutput, ProgramDirectory, NamedProgram
-from dslProcessor import DSLProcessor, Model2DSLProcessor
+from dslProcessor import DSLProcessor, BasicDSLProcessor
 from aiImageDslProcessor import AIImageProcessor
 from spreadsheetDslProcessor import SpreadsheetDSLProcessor
 from VegaDSLProcessor import VegaDSLProcessor
@@ -14,10 +14,10 @@ class ProgramExecutor:
     def __init__(self, programDirectory: ProgramDirectory):
         self.programDirectory = programDirectory
         self.availableDSLProcessors = {
-            "aiimage": AIImageProcessor(programDirectory),
+            #"aiimage": AIImageProcessor(programDirectory),
             "spreadsheet": SpreadsheetDSLProcessor(programDirectory),
-            "vega-lite": VegaDSLProcessor(programDirectory),
-            "javascript": JavascriptDSLProcessor(programDirectory),
+            #"vega-lite": VegaDSLProcessor(programDirectory),
+            #"javascript": JavascriptDSLProcessor(programDirectory),
             "basic": BasicDSLProcessor(programDirectory)
         }
 

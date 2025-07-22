@@ -1,4 +1,4 @@
-from dslProcessor import EscapedSublanguageDSLProcessor
+from dslProcessor import DSLProcessor
 from programs import ProgramOutput, ProgramDirectory
 from typing import List, Dict
 import time
@@ -9,7 +9,7 @@ from typing import List, Any
 import base64
 #need to fix this for return types/rendering
 
-class JavascriptDSLProcessor(EscapedSublanguageDSLProcessor):
+class JavascriptDSLProcessor(DSLProcessor):
 
     def __init__(self, programDirectory: ProgramDirectory):
         super().__init__(programDirectory)

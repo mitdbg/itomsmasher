@@ -1,4 +1,4 @@
-from dslProcessor import DSLProcessor,EscapedSublanguageDSLProcessor
+from dslProcessor import DSLProcessor
 from programs import ProgramOutput, ProgramDirectory
 from typing import List, Any
 import time
@@ -6,7 +6,7 @@ import base64
 import vl_convert as vlc
 
 # VegaDSLProcessor is a DSL processor for the Vega DSL
-class VegaDSLProcessor(EscapedSublanguageDSLProcessor):
+class VegaDSLProcessor(DSLProcessor):
     def __init__(self, programDirectory: ProgramDirectory):
         super().__init__(programDirectory)
 
