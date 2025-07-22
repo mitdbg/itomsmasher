@@ -5,7 +5,7 @@ from typing import Optional, List, Tuple, Any
 import markdown as mdlib
 import copy
 from bs4 import BeautifulSoup
-
+from playwright.sync_api import sync_playwright
 
 # DSLProcessor is a generic superclass for all DSL processors
 class DSLProcessor:
