@@ -1,0 +1,9 @@
+
+# Welcome to the world of Bubble Sort
+## The theory
+We want to take a list of numbers and sort them in ascending order.
+The core idea of bubble sort is to iterate through the list and swap adjacent elements if they are in the wrong order.
+
+Imagine we have a list of numbers:
+
+[5, 3, 8, 4, 2]

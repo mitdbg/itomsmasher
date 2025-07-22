@@ -33,7 +33,7 @@ class BasicDSLProcessor(DSLProcessor):
         self.programDirectory = programDirectory
 
     def getVisualReturnTypes(self) -> List[str]:
-        return ["html", "png"]
+        return ["html", "png","md"]
 
     # The semantics of this DSL are as follows:
     # 1. Every module is purely functional
@@ -169,6 +169,8 @@ class BasicDSLProcessor(DSLProcessor):
 
         if preferredVisualReturnType == "html":
             return ProgramOutput(time.time(), "html", html, outputState)
+        elif preferredVisualReturnType == "md":
+            return ProgramOutput(time.time(), "md", outputText, outputState)
         elif preferredVisualReturnType == "png":
             with sync_playwright() as p:
                 browser = p.chromium.launch()
