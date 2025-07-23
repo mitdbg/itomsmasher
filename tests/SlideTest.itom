@@ -1,0 +1,31 @@
+#@ dsl: slides
+#@ description: A very cool slide deck
+
+{% set name = 'Mike' %}
+
+# Sample Presentation
+![bg right](https://picsum.photos/800/600)
+
+- Made just for {{name}}
+
+<!-- Hi {{name}}, welcome to my awesome presentation -->
+---
+## Speaker notes and Lists
+
+- Item 1
+- Item 2
+- Item 3
+<!-- Here are some lists -->
+
+---
+
+## This is a slide with no notes
+
+- And no speaking
+
+---
+
+## The End!
+<!-- eye-toms are cool. The end -->
+
+![Image](https://picsum.photos/800/600)
