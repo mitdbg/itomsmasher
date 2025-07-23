@@ -10,7 +10,7 @@ from typing import List, Any
 import os
 import time
 import shutil
-
+from dotenv import dotenv_values
 class SlideVideoDSLProcessor(BasicDSLProcessor):
     def __init__(self, programDirectory: ProgramDirectory):
         super().__init__(programDirectory)
@@ -41,7 +41,13 @@ class SlideVideoDSLProcessor(BasicDSLProcessor):
 
         print(f"model: {model}, instructions: {instructions}, voice: {voice}")
  
-        client = OpenAI()
+        client = None
+        # if .env exists, load it
+        if os.path.exists(".env"):
+            env = dotenv_values(".env")
+            client = OpenAI(api_key=env["OPENAI_API_KEY"])
+        else:
+            client = OpenAI()
 
         speech_cache = ".speech_cache"
         # create a speech_cache folder if it doesn't exist
