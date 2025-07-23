@@ -175,7 +175,8 @@ class ProgramDirectory:
     def __init__(self, localProgramDir: str):
         self.programs = {}
         self.localProgramDir = localProgramDir
-
+        self.programExecutor = None
+        
         # Each program has its own directory, so we need to list all the directories in the program directory
         for file in os.listdir(localProgramDir):
             if os.path.isdir(os.path.join(localProgramDir, file)):
@@ -256,5 +257,12 @@ class ProgramDirectory:
         if programName not in self.programs:
             raise ValueError(f"Program {programName} not found")
         return self.programs[programName]
+
+    def setProgramExecutor(self, programExecutor: "ProgramExecutor") -> None:
+        self.programExecutor = programExecutor
+
+    def getProgramExecutor(self) -> "ProgramExecutor":
+        return self.programExecutor
+
 
 

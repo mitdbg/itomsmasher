@@ -7,6 +7,7 @@ from JavascriptDSLProcessor import JavascriptDSLProcessor
 from PlaceHolderDSLProcessor import PlaceHolderDSLProcessor
 from SlideVideoDSLProcessor import SlideVideoDSLProcessor
 from SlideDSLProcessor import SlideDSLProcessor
+from PythonDSLProcessor import PythonDSLProcessor
 from typing import Optional
 import requests
 import json
@@ -24,8 +25,10 @@ class ProgramExecutor:
             "basic": BasicDSLProcessor(programDirectory),
             "slidevideo": SlideVideoDSLProcessor(programDirectory),
             "slides": SlideDSLProcessor(programDirectory),
-            "placeholder": PlaceHolderDSLProcessor(programDirectory)
+            "placeholder": PlaceHolderDSLProcessor(programDirectory),
+            "python": PythonDSLProcessor(programDirectory)
         }
+        self.programDirectory.setProgramExecutor(self)
 
     def executeProgram(self, programName: str, input: ProgramInput, preferredVisualReturnType: Optional[str] = None, inferInputs: bool = False, callingProgramContext: Optional[str] = None,config: Optional[dict] = None) -> ProgramOutput:
         program = self.programDirectory.getProgram(programName)

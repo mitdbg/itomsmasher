@@ -1,0 +1,4 @@
+#@ dsl: basic
+#@ description: a test
+
+{% set foo = include("placeholder",_context="A patient record given a specific name",name='Bob',_outputs=['name','dob','first_admission_date','symptom_list']) %}
