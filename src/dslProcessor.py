@@ -22,7 +22,7 @@ class DSLProcessor:
         # Create pair of input and empty output
         latestCode = program.codeVersions[-1]
         latestExecutionHistory = program.executions[-1]
-        programOutput = self.process(latestCode, input["inputs"], program.outputs, preferredVisualReturnType)
+        programOutput = self.process(latestCode, input["inputs"], program.outputs, preferredVisualReturnType, program.config)
         latestExecutionHistory.append((input, programOutput))
         return programOutput
 
@@ -42,10 +42,10 @@ class BasicDSLProcessor(DSLProcessor):
     # 4. There is no interesting interactivity. All interactivity is at the interface level and anything permanent is a code change.
     #    (That is to say, there is no database or other form of state)
     # 5. Every module should be able to run to partial completion. An error does not bring it to a halt, but just makes the output worse
-    def process(self, code: str, input: dict, outputNames: List[str], preferredVisualReturnType: str) -> ProgramOutput:
-        return self.jinjaProcess(code, input, preferredVisualReturnType)
+    def process(self, code: str, input: dict, outputNames: List[str], preferredVisualReturnType: str,config:dict) -> ProgramOutput:
+        return self.jinjaProcess(code, input, preferredVisualReturnType,config)
     
-    def jinjaProcess(self, code: str, input: dict, preferredVisualReturnType: str) -> ProgramOutput:
+    def jinjaProcess(self, code: str, input: dict, preferredVisualReturnType: str,config:dict) -> ProgramOutput:
         # Use Jinja to process the document
         from jinja2 import Environment, BaseLoader, pass_context
         css = """<style>
@@ -122,7 +122,8 @@ class BasicDSLProcessor(DSLProcessor):
             programOutput = ProgramExecutor(self.programDirectory).executeProgram(programName, 
                                                                                   {"startTimestamp": time.time(), 
                                                                                    "inputs": moduleInputs}, 
-                                                                                   preferredVisualReturnType)
+                                                                                   preferredVisualReturnType,
+                                                                                   program.config)
             if not programOutput.succeeded():
                 return dict(error="ERROR: program " + programName + " failed with message: " + programOutput.errorMessage(),
                             succeeded=False)

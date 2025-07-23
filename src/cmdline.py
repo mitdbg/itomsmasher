@@ -40,7 +40,8 @@ if __name__ == "__main__":
         print(f"Outputting to {args.output}")
         print(f"Format: {args.format}")
 
-        programOutput = programExecutor.executeProgram(namedProgram.name, ProgramInput(startTimestamp=0, inputs={}), preferredVisualReturnType=args.format)
+        #print(f"Config: {namedProgram.config}")
+        programOutput = programExecutor.executeProgram(namedProgram.name, ProgramInput(startTimestamp=0, inputs={}), preferredVisualReturnType=args.format, config=namedProgram.config)
 
         # Write the visual png to a file
         if args.format == "png":

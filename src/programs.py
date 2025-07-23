@@ -47,7 +47,8 @@ class NamedProgram:
                  outputs: List[Tuple[str, dict]],
                  rawCodeVersions: List[str],
                  codeVersions: List[str],
-                 executions: List[List[Tuple[ProgramInput, ProgramOutput]]]):
+                 executions: List[List[Tuple[ProgramInput, ProgramOutput]]],
+                 config: dict):
         self.name = name
         self.description = description
         self.dslId = dslId
@@ -56,9 +57,10 @@ class NamedProgram:
         self.rawCodeVersions = rawCodeVersions
         self.codeVersions = codeVersions
         self.executions = executions
+        self.config = config
 
     @classmethod
-    def __processCodeHeader__(cls, code: str) -> Tuple[str, str, str, List[str], List[str]]:
+    def __processCodeHeader__(cls, code: str) -> Tuple[str, str, str, List[str], List[str], dict]:
         # Read the code header to get the description, dslId, inputs, and outputs.
         # The header is a list of #@-prefixed lines. Each line is a key-value pair of the form "key: value".
         # The header should be removed from the code text.
@@ -81,6 +83,7 @@ class NamedProgram:
         dslId = None
         inputs = []
         outputs = []
+        config = {}
         for line in header:
             key, value = line.split(":")
             key = key.strip()
@@ -95,19 +98,25 @@ class NamedProgram:
                 inputs.append(value)
             elif key == "output":
                 outputs.append(value)
+            elif key == "config":
+                # format of config is var = value
+                var, value2 = value.split("=")
+                var = var.strip()
+                value = value2.strip()
+                config[var] = eval(value2)
             else:
                 raise ValueError(f"Unknown header key: {key}")
 
         if dslId is None:
             raise ValueError("No dslId found in header")
 
-        return remainingCode, description, dslId, inputs, outputs
+        return remainingCode, description, dslId, inputs, outputs, config
 
 
     @classmethod
     def from_code(cls, name: str, rawCode: str) -> "NamedProgram":
-        remainingCode, description, dslId, inputs, outputs = cls.__processCodeHeader__(rawCode)
-        return cls(name, description, dslId, inputs, outputs, [rawCode], [remainingCode], [[]])
+        remainingCode, description, dslId, inputs, outputs, config = cls.__processCodeHeader__(rawCode)
+        return cls(name, description, dslId, inputs, outputs, [rawCode], [remainingCode], [[]], config)
 
     # init from dict
     @classmethod
@@ -119,7 +128,8 @@ class NamedProgram:
                    dict["outputs"],
                    dict["rawCodeVersions"],
                    dict["codeVersions"],
-                   dict["executions"])
+                   dict["executions"],
+                   dict["config"])
 
     # init from json
     @classmethod
@@ -136,7 +146,8 @@ class NamedProgram:
             "outputs": self.outputs,
             "rawCodeVersions": self.rawCodeVersions,
             "codeVersions": self.codeVersions,
-            "executions": self.executions
+            "executions": self.executions,
+            "config": self.config
         })
 
     def getLatestCode(self) -> str:
@@ -201,12 +212,13 @@ class ProgramDirectory:
             with open(os.path.join(programDir, "code.itom"), "r") as f:
                 rawCodeText = f.read()
                 if rawCodeText != program.getLatestRawCode():
-                    remainingCode, description, dslId, inputs, outputs = NamedProgram.__processCodeHeader__(rawCodeText)
+                    remainingCode, description, dslId, inputs, outputs,config = NamedProgram.__processCodeHeader__(rawCodeText)
                     program.addCodeVersion(rawCodeText, remainingCode)
                     program.description = description
                     program.dslId = dslId
                     program.inputs = inputs
                     program.outputs = outputs
+                    program.config = config
                     changed = True
         if changed:
             self.save()

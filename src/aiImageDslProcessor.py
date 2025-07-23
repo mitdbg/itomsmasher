@@ -13,7 +13,7 @@ class AIImageProcessor(DSLProcessor):
     def getVisualReturnTypes(self) -> List[str]:
         return ["png", "html"]
 
-    def process(self, code: str, input: dict, outputNames: List[str], preferredVisualReturnType: str) -> ProgramOutput:
+    def process(self, code: str, input: dict, outputNames: List[str], preferredVisualReturnType: str,config:dict) -> ProgramOutput:
         size = input["size"] if "size" in input else "large"
         if size == "small":
             horizontalSize = 256

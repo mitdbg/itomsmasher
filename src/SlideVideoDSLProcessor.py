@@ -19,10 +19,10 @@ class SlideVideoDSLProcessor(BasicDSLProcessor):
     def getVisualReturnTypes(self) -> List[str]:
         return ["mp4"]
     
-    def process(self, code: str, input: dict, outputNames: List[str], preferredVisualReturnType: str) -> ProgramOutput:
+    def process(self, code: str, input: dict, outputNames: List[str], preferredVisualReturnType: str,config:dict) -> ProgramOutput:
         if preferredVisualReturnType not in self.getVisualReturnTypes():
             raise ValueError(f"Invalid visual return type: {preferredVisualReturnType}")
-        result = super().process(code, input, outputNames, "md")
+        result = super().process(code, input, outputNames, "md",config)
         if not result.succeeded():
             return dict(error="ERROR: program failed with message: " + result.errorMessage(),
                         succeeded=False)
@@ -30,14 +30,16 @@ class SlideVideoDSLProcessor(BasicDSLProcessor):
             code =str(result.viz())
             
         model = "gpt-4o-mini-tts"
-        if "model" in input:
-            model = input["model"]
+        if "model" in config:
+            model = config["model"]
         instructions = "Speak in a cheerful and positive tone."
-        if "instructions" in input:
-            instructions = input["instructions"]
+        if "instructions" in config:
+            instructions = config["instructions"]
         voice = "coral"
-        if "voice" in input:
-            voice = input["voice"]
+        if "voice" in config:
+            voice = config["voice"]
+
+        print(f"model: {model}, instructions: {instructions}, voice: {voice}")
  
         client = OpenAI()
 

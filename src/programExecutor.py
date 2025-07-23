@@ -23,7 +23,7 @@ class ProgramExecutor:
             "slidevideo": SlideVideoDSLProcessor(programDirectory)
         }
 
-    def executeProgram(self, programName: str, input: ProgramInput, preferredVisualReturnType: Optional[str] = None, inferInputs: bool = False, callingProgramContext: Optional[str] = None) -> ProgramOutput:
+    def executeProgram(self, programName: str, input: ProgramInput, preferredVisualReturnType: Optional[str] = None, inferInputs: bool = False, callingProgramContext: Optional[str] = None,config: Optional[dict] = None) -> ProgramOutput:
         program = self.programDirectory.getProgram(programName)
         if program.dslId not in self.availableDSLProcessors:
             raise ValueError(f"DSL processor {program.dslId} not found")
