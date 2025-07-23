@@ -4,6 +4,7 @@ from aiImageDslProcessor import AIImageProcessor
 from spreadsheetDslProcessor import SpreadsheetDSLProcessor
 from VegaDSLProcessor import VegaDSLProcessor
 from JavascriptDSLProcessor import JavascriptDSLProcessor
+from PlaceHolderDSLProcessor import PlaceHolderDSLProcessor
 from SlideVideoDSLProcessor import SlideVideoDSLProcessor
 from SlideDSLProcessor import SlideDSLProcessor
 from typing import Optional
@@ -22,7 +23,8 @@ class ProgramExecutor:
             #"javascript": JavascriptDSLProcessor(programDirectory),
             "basic": BasicDSLProcessor(programDirectory),
             "slidevideo": SlideVideoDSLProcessor(programDirectory),
-            "slides": SlideDSLProcessor(programDirectory)
+            "slides": SlideDSLProcessor(programDirectory),
+            "placeholder": PlaceHolderDSLProcessor(programDirectory)
         }
 
     def executeProgram(self, programName: str, input: ProgramInput, preferredVisualReturnType: Optional[str] = None, inferInputs: bool = False, callingProgramContext: Optional[str] = None,config: Optional[dict] = None) -> ProgramOutput:

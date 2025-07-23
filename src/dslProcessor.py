@@ -117,6 +117,13 @@ class BasicDSLProcessor(DSLProcessor):
                     return dict(error="ERROR: includeFn could not find input: " + inputName,
                                 succeeded=False)
                 moduleInputs[inputName] = providedInputs[inputName]
+            for inputName in providedInputs:
+                # add any extra inputs to the module inputs
+                if inputName not in moduleInputs:
+                    # print a warning that an input was used that was
+                    # not provided
+                    print(f"WARNING: input {inputName} in include but not in {programName} itom")
+                    moduleInputs[inputName] = providedInputs[inputName]
 
             from programExecutor import ProgramExecutor
             programOutput = ProgramExecutor(self.programDirectory).executeProgram(programName, 

@@ -100,10 +100,13 @@ class NamedProgram:
                 outputs.append(value)
             elif key == "config":
                 # format of config is var = value
-                var, value2 = value.split("=")
-                var = var.strip()
-                value = value2.strip()
-                config[var] = eval(value2)
+                try:
+                    var, value2 = value.split("=")
+                    var = var.strip()
+                    value = value2.strip()
+                    config[var] = eval(value2)
+                except Exception as e:
+                    raise ValueError(f"Invalid config value: {value} - {e}")
             else:
                 raise ValueError(f"Unknown header key: {key}")
 
