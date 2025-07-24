@@ -20,7 +20,7 @@ class ProgramExecutor:
         self.availableDSLProcessors = {
             "aiimage": AIImageProcessor(programDirectory),
             "spreadsheet": SpreadsheetDSLProcessor(programDirectory),
-            #"vega-lite": VegaDSLProcessor(programDirectory),
+            "vega-lite": VegaDSLProcessor(programDirectory),
             #"javascript": JavascriptDSLProcessor(programDirectory),
             "basic": BasicDSLProcessor(programDirectory),
             "slidevideo": SlideVideoDSLProcessor(programDirectory),

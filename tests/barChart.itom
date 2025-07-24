@@ -1,7 +1,5 @@
 #@ dsl: vega-lite
 #@ description: a basic bar chart
-#@ input: width
-#@ input: height
 
 {
   "$schema": "https://vega.github.io/schema/vega-lite/v6.json",
@@ -30,7 +28,5 @@
   "encoding": {
     "x": {"field": "a", "type": "nominal", "axis": {"labelAngle": 0}},
     "y": {"field": "b", "type": "quantitative"}
-  },
-  "width" : -#width#-,
-  "height" : -#height#-
+  }
 }
