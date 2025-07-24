@@ -1,0 +1,30 @@
+#@ dsl: slidevideo
+#@ config: instructions='speak in an academic voice, but not boring'
+#@ config: voice = 'alloy'
+#@ description: A very cool slide deck
+
+{% set name = 'Alice' %}
+{% set results = include("placeholder",_context="A patient record given a specific name",first_name=name,_outputs=['last_name','first_name','age','age_at_first_admission','symptom_list','months_since_last_admission'],_forceRefresh=False) %}
+
+{% set topic = "A high quality photograph for a patient named " + results.data.first_name + " age " ~ results.data.age %}
+{% set image = include("aiImagePrompt",size='medium',topic=topic,_forceformat='md')%}
+# Patient Case File: {{results.data.first_name}} {{results.data.last_name}}
+{{image.visual}}
+
+<!-- This is a patient case file for {{results.data.first_name}} {{results.data.last_name}}, age {{results.data.age}} -->
+---
+## Symptoms
+{% set l= results.data.symptom_list|length %}
+{% set f = results.data.symptom_list[:l-1] %}
+{% set e = results.data.symptom_list[-1:] %}
+
+{% for my_item in results.data.symptom_list %}
+- {{my_item}}
+{% endfor %}
+<!-- The patient presents with {{f}} and {{e}} -->
+
+---
+
+## Current status
+Last admitted {{results.data.months_since_last_admission}} months ago
+<!-- They were first admitted at age {{results.data.age_at_first_admission}} and last admitted {{results.data.months_since_last_admission}} months ago-->

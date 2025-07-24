@@ -19,7 +19,7 @@ class PlaceHolderDSLProcessor(BasicDSLProcessor):
         self.programDirectory = programDirectory
     
     def getVisualReturnTypes(self) -> List[str]:
-        return ["html"]
+        return ["html","md"]
     
     def getInstalledPackages(self) -> List[str]:
         installed_packages = pkg_resources.working_set
@@ -89,16 +89,19 @@ It will accept the following inputs: {innerInput.keys()}
 
 The function should not call any network functions or modify any files. 
 If you need to make up data, use a random generator that outputs reasonable values 
-given the context.
+given the context. Try to use the most realistic data possible (e.g., don't just use
+random words if something specific is asked for)
 
-Only return the code completion! No other text. 
+Only return the code completion! No other text. It is important that all imports
+and sub-functions are *inside* the function.
 
 The following packages are installed and can be used:
 {self.getInstalledPackages()}
 
-Do not use any other libraries that would require installation. Any imports or sub-functions should be *inside* the function.
+Do not use any other libraries that would require installation. 
+Again, any imports or sub-functions should be *inside* the function.
 
-Write the rest of the program:
+Make a plan for the program and then write the rest of the program to complete the function:
         """
 
         docstring = "\t\"\"\"Function for: " + context + "\n"
@@ -130,19 +133,46 @@ Write the rest of the program:
 
         #print(signature)
         #print(prompt)
-
-        response = client.chat.completions.create(
-            model="gpt-4o-mini",
-            messages=[
+        messages = [
                 {"role": "system", "content": "You are a helpful assistant that can generate code."},
                 {"role": "user", "content": prompt}
             ]
+
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=messages
         )
         response_text = response.choices[0].message.content
 
-        # extract out everything between ```python and ```
+
         response_text = response_text.split("```python")[1].split("```")[0]
-        #print(response_text)
+
+        # let's test the code
+        try:
+            exec(response_text)
+            exec(f"{function_name}()")
+            print("Code executed successfully")
+        except Exception as e:
+            print(e)
+            print("Code failed to execute, attempting to fix it")
+            messages.append({"role": "assistant", "content": response_text})
+            newprompt = f"""
+The code failed to execute with the following error:
+{e}
+
+Please fix the code so that it executes successfully. 
+Remember, all imports and sub-functions should be *inside* the function.
+
+Reason about the error and return the corrected code.
+"""
+            messages.append({"role": "user", "content": newprompt})
+            response = client.chat.completions.create(
+                model="gpt-4o-mini",
+                messages=messages
+            )
+            response_text = response.choices[0].message.content
+            response_text = response_text.split("```python")[1].split("```")[0]
+            #print(response_text)
 
         itom = f"""#@ dsl: python
 #@ config: mainfunc='{function_name}'
