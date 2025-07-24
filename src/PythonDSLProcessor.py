@@ -23,7 +23,20 @@ class PythonDSLProcessor(DSLProcessor):
         # create a function call string
         args = []
         for key, value in input.items():
-            val = str(value)
+            # if value is a string, wrap it in quotes
+            if isinstance(value, str):
+                val = f'"{value}"'
+            # if value is list, check the elements and wrap them in quotes if they are strings
+            elif isinstance(value, list):
+                vals = []
+                for item in value:
+                    if isinstance(item, str):
+                        vals.append(f'"{item}"')
+                    else:
+                        vals.append(str(item))
+                val = f"[{', '.join(vals)}]"
+            else:
+                val = str(value)
             args.append(f"{key}={val}")
         args_string = ", ".join(args)
 

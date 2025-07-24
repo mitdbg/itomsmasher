@@ -65,6 +65,7 @@ class NamedProgram:
         # The header is a list of #@-prefixed lines. Each line is a key-value pair of the form "key: value".
         # The header should be removed from the code text.
         # Once we hit a line that is not prefixed with #@, we stop parsing the header.
+
         header = []
         inHeader = True
         remainingCodeLines = []
@@ -176,7 +177,7 @@ class ProgramDirectory:
         self.programs = {}
         self.localProgramDir = localProgramDir
         self.programExecutor = None
-        
+
         # Each program has its own directory, so we need to list all the directories in the program directory
         for file in os.listdir(localProgramDir):
             if os.path.isdir(os.path.join(localProgramDir, file)):
