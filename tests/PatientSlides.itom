@@ -4,14 +4,14 @@
 #@ description: A very cool slide deck
 
 {% set name = 'Alice' %}
-{% set results = include("placeholder",_context="A patient record given a specific name",name=name,_outputs=['name','dob','first_admission_date','symptom_list'],_forceRefresh=False) %}
+{% set results = include("placeholder",_context="A patient record given a specific name",first_name=name,_outputs=['last_name','first_name','age','age_at_first_admission','symptom_list','months_since_last_admission'],_forceRefresh=False) %}
 
 # Patient Case File 
 ![bg right](https://picsum.photos/800/600)
 
-- Patient case file for {{results.data.name}}
+- Patient case file for {{results.data.first_name}} {{results.data.last_name}}
 
-<!-- This is a patient case file for {{results.data.name}}, born on {{results.data.dob}} -->
+<!-- This is a patient case file for {{results.data.first_name}} {{results.data.last_name}}, age {{results.data.age}} -->
 ---
 ## Symptoms
 {% for my_item in results.data.symptom_list %}
@@ -22,4 +22,5 @@
 ---
 
 ## Current status
-<!-- They were first admitted in {{results.data.first_admission_date}}  -->
+Last admitted {{results.data.months_since_last_admission}} months ago
+<!-- They were first admitted at age {{results.data.age_at_first_admission}} and last admitted {{results.data.months_since_last_admission}} months ago-->
