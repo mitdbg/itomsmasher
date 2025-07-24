@@ -1,71 +1,99 @@
-from dslProcessor import DSLProcessor
+from dslProcessor import BasicDSLProcessor
 from programs import ProgramOutput, ProgramDirectory
 from typing import List, Any
 import time
 import base64
-import vl_convert as vlc
+import altair as alt
+import json
+import uuid
+import os
 
 # VegaDSLProcessor is a DSL processor for the Vega DSL
-class VegaDSLProcessor(DSLProcessor):
+class VegaDSLProcessor(BasicDSLProcessor):
     def __init__(self, programDirectory: ProgramDirectory):
         super().__init__(programDirectory)
 
     def getVisualReturnTypes(self) -> List[str]:
-        return ["png", "html"]
+        return ["png", "html","svg","pdf","json","md"]
     
-    def __convertToLocalDSL__(self, data: Any) -> str:
-        if data is None:
-            return ""
-        elif isinstance(data, str):
-            return data
-        elif isinstance(data, int):
-            return str(data)
-        elif isinstance(data, float):
-            return str(data)
-        elif isinstance(data, ProgramOutput):            
-            # The returned item is an example of ProgramOutput
-            if data.visualReturnType() == "html":
-                return data.viz()
-            elif data.visualReturnType() == "png":
-                # Be sure to base64 encode the png
-                return f"![{data.visualReturnType()}](data:image/png;base64,{base64.b64encode(data.viz()).decode('utf-8')})"
-            else:
-                # We can only convert these two visual return types to markdown
-                raise ValueError(f"Invalid visual return type: {data.visualReturnType()}")
-        elif isinstance(data, dict):
-            #It's not a ProgramOutput. It's just a dictionary, so convert to a string representation
-            return "\n".join([f"{key}: {value}" for key, value in data.items()])
-        elif isinstance(data, list):
-            return "[" + ",".join([self.__convertToLocalDSL__(item) for item in data]) + "]"
-        else:
-            # What else could it be?
-            raise ValueError(f"Invalid return type during markdown preprocessing: {data}")
-
     def process(self, code: str, input: dict, outputNames: List[str], preferredVisualReturnType: str,config:dict) -> ProgramOutput:
         if preferredVisualReturnType not in self.getVisualReturnTypes():
             raise ValueError(f"Invalid visual return type: {preferredVisualReturnType}")
-
-        # Preprocess the document
-        vl_spec, finalVariables = self.__preprocess__(code, input, preferredVisualReturnType, startBlock="-#", endBlock="#-")
         
-        # convert the vl_spec to a raw python string
-        vl_spec = r"{}".format(vl_spec)
-        #print("--",vl_spec,"--")
+        # do the templating stuff
+        result = super().process(code, input, outputNames, "md",config)
+        if not result.succeeded():
+            return dict(error="ERROR: program failed with message: " + result.errorMessage(),
+                        succeeded=False)
+        else:
+            code = str(result.viz())
+
+        if "_forceformat" in input:
+            preferredVisualReturnType = input["_forceformat"]
+
+        #print(f"code: {code}")
+        chart_json = json.loads(str(code))
+        
+        # just want json, so we can be done
+        if preferredVisualReturnType == "json":
+            return ProgramOutput(time.time(), "json", chart_json, {})
+        
+
+
+        # make the chart
+        chart = alt.Chart.from_json(json.dumps(chart_json))
+
+        # create a guid 
+        guid = str(uuid.uuid4())
+        binary_data = None
 
         if preferredVisualReturnType == "html":
-            png_data = vlc.vegalite_to_png(vl_spec=vl_spec, scale=2)
-            outputData = {outputName: finalVariables[outputName] for outputName in outputNames}
-            return ProgramOutput(time.time(), 
-                                 "html", 
-                                 # Fix up the png data to be a base64 encoded string
-                                 f"<img src='data:image/png;base64,{base64.b64encode(png_data).decode('utf-8')}' />",
-                                 outputData)
+            chart.save(f"{guid}.out",format="html")
         elif preferredVisualReturnType == "png":
-            png_data = vlc.vegalite_to_png(vl_spec=vl_spec, scale=2)
-            outputData = {outputName: finalVariables[outputName] for outputName in outputNames}
-            return ProgramOutput(time.time(), "png", png_data, outputData)
+            chart.save(f"{guid}.out",format="png")
+        elif preferredVisualReturnType == "svg":
+            chart.save(f"{guid}.out",format="svg")
+        elif preferredVisualReturnType == "pdf":
+            chart.save(f"{guid}.out",format="pdf")
+        elif preferredVisualReturnType == "md":
+            chart.save(f"{guid}.out",format="png")
         else:
             raise ValueError(f"Invalid visual return type: {preferredVisualReturnType}")
+
+        # load the binary data from the file {guid}.out
+        with open(f"{guid}.out", "rb") as file:
+            binary_data = file.read()
+
+        
+
+        # remove the guid file {guid}.out if it exists
+        if os.path.exists(f"{guid}.out"):
+            os.remove(f"{guid}.out")
+
+        outputData = {}
+
+        if preferredVisualReturnType == "html":
+            # create a text_data version
+            text_data = binary_data.decode('utf-8')
+            return ProgramOutput(time.time(), "html", text_data, {})
+        elif preferredVisualReturnType == "png":
+            return ProgramOutput(time.time(), "png", binary_data, {})
+        elif preferredVisualReturnType == "svg":
+            text_data = binary_data.decode('utf-8')
+            return ProgramOutput(time.time(), "svg", text_data, {})
+        elif preferredVisualReturnType == "pdf":
+            return ProgramOutput(time.time(), "pdf", binary_data, {})
+        elif preferredVisualReturnType == "md":
+            image_data = base64.b64encode(binary_data).decode('utf-8')
+            return ProgramOutput(time.time(), "md", f"![Image](data:image/png;base64,{image_data})", outputData)
+        else:
+            raise ValueError(f"Invalid visual return type: {preferredVisualReturnType}")
+        
+
+
+
+
+        
 
 
 
