@@ -1,4 +1,4 @@
-#@ dsl: model2
+#@ dsl: basic
 #@ description: A basic test of an included program for the Jinja DSL revision
 #@ input: a
 #@ input: b  

@@ -15,7 +15,7 @@ class ProgramExecutor:
     def __init__(self, programDirectory: ProgramDirectory):
         self.programDirectory = programDirectory
         self.availableDSLProcessors = {
-            #"aiimage": AIImageProcessor(programDirectory),
+            "aiimage": AIImageProcessor(programDirectory),
             "spreadsheet": SpreadsheetDSLProcessor(programDirectory),
             #"vega-lite": VegaDSLProcessor(programDirectory),
             #"javascript": JavascriptDSLProcessor(programDirectory),

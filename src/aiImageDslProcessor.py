@@ -1,4 +1,4 @@
-from dslProcessor import DSLProcessor
+from dslProcessor import PreprocessedDSL
 from programs import ProgramOutput, ProgramDirectory
 from typing import List, Any
 import os
@@ -6,14 +6,14 @@ import time
 import base64
 import requests
 
-class AIImageProcessor(DSLProcessor):
+class AIImageProcessor(PreprocessedDSL):
     def __init__(self, programDirectory: ProgramDirectory):
         super().__init__(programDirectory)
 
     def getVisualReturnTypes(self) -> List[str]:
         return ["png", "html"]
 
-    def process(self, code: str, input: dict, outputNames: List[str], preferredVisualReturnType: str) -> ProgramOutput:
+    def postprocess(self, processedCode: str, processedOutputState: dict, input: dict, outputNames: List[str], preferredVisualReturnType: str) -> ProgramOutput:
         size = input["size"] if "size" in input else "large"
         if size == "small":
             horizontalSize = 256
@@ -41,7 +41,7 @@ class AIImageProcessor(DSLProcessor):
         }
 
         data = {
-            "prompt": code,
+            "prompt": processedCode,
             "n": 1,
             "size": f"{horizontalSize}x{verticalSize}",
             "response_format": "b64_json"
@@ -63,8 +63,5 @@ class AIImageProcessor(DSLProcessor):
 
         if preferredVisualReturnType == "png":
             return ProgramOutput(time.time(), "png", png_bytes, outputData)
-        elif preferredVisualReturnType == "html":
-            # Return an HTML image tag that b64 encodes the image directly
+        else:               # Return an HTML image tag that b64 encodes the image directly
             return ProgramOutput(time.time(), "html", f"<img src='data:image/png;base64,{image_data}' />", outputData)
-        else:
-            raise ValueError(f"Invalid visual return type: {preferredVisualReturnType}")

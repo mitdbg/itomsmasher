@@ -14,7 +14,7 @@ class DSLProcessor:
 
     def getVisualReturnTypes(self) -> List[str]:
         raise NotImplementedError("DSLProcessor is an abstract class and cannot be instantiated directly")
-
+    
     def process(self, code: str, input: dict, outputNames: List[str], preferredVisualReturnType: str) -> ProgramOutput:
         raise NotImplementedError("DSLProcessor is an abstract class and cannot be instantiated directly")
 
@@ -26,46 +26,25 @@ class DSLProcessor:
         latestExecutionHistory.append((input, programOutput))
         return programOutput
 
-
-class BasicDSLProcessor(DSLProcessor):
+class PreprocessedDSL(DSLProcessor):
     def __init__(self, programDirectory: ProgramDirectory):
         super().__init__()
         self.programDirectory = programDirectory
 
-    def getVisualReturnTypes(self) -> List[str]:
-        return ["html", "png","md"]
+    def getIncludableReturnTypes(self) -> List[str]:
+        raise NotImplementedError("PreprocessedDSL is an abstract class and cannot be instantiated directly")
 
-    # The semantics of this DSL are as follows:
-    # 1. Every module is purely functional
-    # 2. Every module returns (1) a structured result, and (2) a visua result that can be rendered onscreen, (3) success or error code
-    # 3. There is no interesting runtime state. A module runs to completion. If the module code changes, the module should be re-run.
-    # 4. There is no interesting interactivity. All interactivity is at the interface level and anything permanent is a code change.
-    #    (That is to say, there is no database or other form of state)
-    # 5. Every module should be able to run to partial completion. An error does not bring it to a halt, but just makes the output worse
     def process(self, code: str, input: dict, outputNames: List[str], preferredVisualReturnType: str) -> ProgramOutput:
-        return self.jinjaProcess(code, input, preferredVisualReturnType)
-    
-    def jinjaProcess(self, code: str, input: dict, preferredVisualReturnType: str) -> ProgramOutput:
+        processedCode, processedOutput = self.preprocess(code, input, outputNames, preferredVisualReturnType)
+        return self.postprocess(processedCode, processedOutput, input, outputNames, preferredVisualReturnType)
+
+    def postprocess(self, processedCode: str, processedOutputState: dict, input: dict, outputNames: List[str], preferredVisualReturnType: str) -> ProgramOutput:
+        raise NotImplementedError("PreprocessedDSL is an abstract class and cannot be instantiated directly")
+
+    def preprocess(self, code: str, input: dict, outputNames: List[str], preferredVisualReturnType: str) -> Tuple[str, dict]:
         # Use Jinja to process the document
         from jinja2 import Environment, BaseLoader, pass_context
-        css = """<style>
-            body {
-                background-color: rgb(246,190,23);
-                margin: 0;
-            }
-            h1, p {
-                margin: 0.25em 0;
-            }
-            .panel {
-                background-color: rgb(229,228,228);
-                border-radius: 12px;
-                padding: 1em;
-                margin: 1em 0;
-                box-shadow: 0 3px 9px rgba(0,0,0,0.08);
-                font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-                line-height: 1.2;
-            }
-            </style>"""
+
         outputState = {}
         inputState = copy.deepcopy(input)
         env = Environment(loader=BaseLoader)
@@ -119,6 +98,10 @@ class BasicDSLProcessor(DSLProcessor):
                 moduleInputs[inputName] = providedInputs[inputName]
 
             from programExecutor import ProgramExecutor
+
+            #
+            # IN THIS LOCATION, FIGURE OUT WHAT DATA TYPE TO ASK FOR
+            #
             programOutput = ProgramExecutor(self.programDirectory).executeProgram(programName, 
                                                                                   {"startTimestamp": time.time(), 
                                                                                    "inputs": moduleInputs}, 
@@ -143,7 +126,45 @@ class BasicDSLProcessor(DSLProcessor):
         # Render the template
         template = env.from_string(code)
         outputText = template.render()
+        return outputText, outputState
 
+
+
+
+class BasicDSLProcessor(PreprocessedDSL):
+    def __init__(self, programDirectory: ProgramDirectory):
+        super().__init__(programDirectory)
+
+    def getVisualReturnTypes(self) -> List[str]:
+        return ["html", "png","md"]
+
+    # The semantics of this DSL are as follows:
+    # 1. Every module is purely functional
+    # 2. Every module returns (1) a structured result, and (2) a visua result that can be rendered onscreen, (3) success or error code
+    # 3. There is no interesting runtime state. A module runs to completion. If the module code changes, the module should be re-run.
+    # 4. There is no interesting interactivity. All interactivity is at the interface level and anything permanent is a code change.
+    #    (That is to say, there is no database or other form of state)
+    # 5. Every module should be able to run to partial completion. An error does not bring it to a halt, but just makes the output worse
+    def postprocess(self, processedCode: str, processedOutputState: dict, input: dict, outputNames: List[str], preferredVisualReturnType: str) -> ProgramOutput:
+        css = """<style>
+            body {
+                background-color: rgb(246,190,23);
+                margin: 0;
+            }
+            h1, p {
+                margin: 0.25em 0;
+            }
+            .panel {
+                background-color: rgb(229,228,228);
+                border-radius: 12px;
+                padding: 1em;
+                margin: 1em 0;
+                box-shadow: 0 3px 9px rgba(0,0,0,0.08);
+                font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+                line-height: 1.2;
+            }
+            </style>
+"""
         def render_markdown_in_divs(source: str) -> str:
             soup = BeautifulSoup(source, "html.parser")
 
@@ -163,14 +184,14 @@ class BasicDSLProcessor(DSLProcessor):
             process_node(soup)
             return str(soup)
 
-        visualOutput = render_markdown_in_divs(outputText)
+        visualOutput = render_markdown_in_divs(processedCode)
         visualOutput = mdlib.markdown(visualOutput)
         html = css + visualOutput
 
         if preferredVisualReturnType == "html":
-            return ProgramOutput(time.time(), "html", html, outputState)
+            return ProgramOutput(time.time(), "html", html, processedOutputState)
         elif preferredVisualReturnType == "md":
-            return ProgramOutput(time.time(), "md", outputText, outputState)
+            return ProgramOutput(time.time(), "md", outputText, processedOutputState)
         elif preferredVisualReturnType == "png":
             with sync_playwright() as p:
                 browser = p.chromium.launch()
@@ -178,7 +199,7 @@ class BasicDSLProcessor(DSLProcessor):
                 page.set_content(html)
                 png_bytes = page.screenshot(full_page=True, type="png")
                 browser.close()
-                return ProgramOutput(time.time(), "png", png_bytes, outputState)
+                return ProgramOutput(time.time(), "png", png_bytes, processedOutputState)
         else:
             raise ValueError(f"Invalid visual return type: {preferredVisualReturnType}")
 

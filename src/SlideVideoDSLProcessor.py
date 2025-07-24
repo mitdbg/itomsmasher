@@ -19,16 +19,12 @@ class SlideVideoDSLProcessor(BasicDSLProcessor):
     def getVisualReturnTypes(self) -> List[str]:
         return ["mp4"]
     
-    def process(self, code: str, input: dict, outputNames: List[str], preferredVisualReturnType: str) -> ProgramOutput:
+    def postprocess(self, processedCode: str, processedOutputState: dict, input: dict, outputNames: List[str], preferredVisualReturnType: str) -> ProgramOutput:
         if preferredVisualReturnType not in self.getVisualReturnTypes():
             raise ValueError(f"Invalid visual return type: {preferredVisualReturnType}")
-        result = super().process(code, input, outputNames, "md")
-        if not result.succeeded():
-            return dict(error="ERROR: program failed with message: " + result.errorMessage(),
-                        succeeded=False)
-        else:
-            code =str(result.viz())
-            
+
+        code = processedCode
+
         model = "gpt-4o-mini-tts"
         if "model" in input:
             model = input["model"]

@@ -25,6 +25,12 @@
 
 ---
 
+## This slide should have a nice picture
+{% set x = include("aiImagePrompt", topic="A picture of a cat traveling through time", size="large") %}
+{{x.visual}}
+
+---
+
 ## The End!
 <!-- eye-toms are cool. The end -->
 

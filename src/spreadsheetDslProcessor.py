@@ -1,4 +1,4 @@
-from dslProcessor import DSLProcessor
+from dslProcessor import PreprocessedDSL
 from programs import ProgramOutput, ProgramDirectory
 from typing import List, Dict
 import time
@@ -6,20 +6,19 @@ import re
 from playwright.sync_api import sync_playwright
 
 
-class SpreadsheetDSLProcessor(DSLProcessor):
+class SpreadsheetDSLProcessor(PreprocessedDSL):
     def __init__(self, programDirectory: ProgramDirectory):
-        super().__init__()
-        self.programDirectory = programDirectory
+        super().__init__(programDirectory)
     
     def getVisualReturnTypes(self) -> List[str]:
         return ["html", "png"]
     
-    def process(self, code: str, input: dict, outputNames: List[str], preferredVisualReturnType: str) -> ProgramOutput:
+    def postprocess(self, processedCode: str, processedOutputState: dict, input: dict, outputNames: List[str], preferredVisualReturnType: str) -> ProgramOutput:
         if preferredVisualReturnType not in self.getVisualReturnTypes():
             raise ValueError(f"Invalid visual return type: {preferredVisualReturnType}")
         
         # Parse spreadsheet definition
-        grid = self._parseSpreadsheet(code, input)
+        grid = self._parseSpreadsheet(processedCode, input)
 
         # Calculate all formulas
         calculated_grid = self._calculateFormulas(grid)
