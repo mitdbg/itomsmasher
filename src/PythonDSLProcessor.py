@@ -13,7 +13,7 @@ class PythonDSLProcessor(DSLProcessor):
         self.programDirectory = programDirectory
 
     def getVisualReturnTypes(self) -> List[str]:
-        return ["html","png"]
+        return ["html","png","md"]
 
     def process(self, code: str, input: dict, outputNames: List[str], preferredVisualReturnType: str,config:dict) -> ProgramOutput:
         main_function_name = config['mainfunc']
@@ -48,16 +48,20 @@ class PythonDSLProcessor(DSLProcessor):
         #print("result", result)
         outputData = {}
         table = "<TABLE><TR><TH>Key</TH><TH>Value</TH></TR>\n"
+        markdown_table = "| Key | Value |\n| --- | --- |\n"
         for key, value in result.items():
             # if the key is in outputNames, add it to the outputData
             if key in outputNames:
                 outputData[key] = value
                 table += f"<TR><TD>{key}</TD><TD>{value}</TD></TR>\n"
+                markdown_table += f"| {key} | {value} |\n"
         table += "</TABLE>"
 
         if preferredVisualReturnType == "html":
             # Return an HTML image tag that b64 encodes the image directly
             return ProgramOutput(time.time(), "html", f"{table}", outputData)
+        elif preferredVisualReturnType == "md":
+            return ProgramOutput(time.time(), "md", f"{markdown_table}", outputData)
         elif preferredVisualReturnType == "png":
             with sync_playwright() as p:
                 browser = p.chromium.launch()

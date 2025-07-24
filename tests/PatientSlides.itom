@@ -1,0 +1,25 @@
+#@ dsl: slidevideo
+#@ config: instructions='speak in an academic voice, but not boring'
+#@ config: voice = 'alloy'
+#@ description: A very cool slide deck
+
+{% set name = 'Alice' %}
+{% set results = include("placeholder",_context="A patient record given a specific name",name=name,_outputs=['name','dob','first_admission_date','symptom_list'],_forceRefresh=False) %}
+
+# Patient Case File 
+![bg right](https://picsum.photos/800/600)
+
+- Patient case file for {{results.data.name}}
+
+<!-- This is a patient case file for {{results.data.name}}, born on {{results.data.dob}} -->
+---
+## Symptoms
+{% for my_item in results.data.symptom_list %}
+- {{my_item}}
+{% endfor %}
+<!-- The patient presents with {{results.data.symptom_list}} -->
+
+---
+
+## Current status
+<!-- They were first admitted in {{results.data.first_admission_date}}  -->

@@ -19,7 +19,7 @@ class PlaceHolderDSLProcessor(BasicDSLProcessor):
         self.programDirectory = programDirectory
     
     def getVisualReturnTypes(self) -> List[str]:
-        return ["html"]
+        return ["html","md"]
     
     def getInstalledPackages(self) -> List[str]:
         installed_packages = pkg_resources.working_set
@@ -89,14 +89,17 @@ It will accept the following inputs: {innerInput.keys()}
 
 The function should not call any network functions or modify any files. 
 If you need to make up data, use a random generator that outputs reasonable values 
-given the context.
+given the context. Try to use the most realistic data possible (e.g., don't just use
+random words if something specific is asked for)
 
-Only return the code completion! No other text. 
+Only return the code completion! No other text. It is important that all imports
+and sub-functions are *inside* the function.
 
 The following packages are installed and can be used:
 {self.getInstalledPackages()}
 
-Do not use any other libraries that would require installation. Any imports or sub-functions should be *inside* the function.
+Do not use any other libraries that would require installation. 
+Again, any imports or sub-functions should be *inside* the function.
 
 Write the rest of the program:
         """
