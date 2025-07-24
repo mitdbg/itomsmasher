@@ -1,7 +1,17 @@
 #@ dsl: aiimage
-#@ input: topic
-#@ input: size
-#@ output: topic
+#@ inputs:
+#@   topic:
+#@     type: string
+#@     description: The topic of the image
+#@     required: true
+#@   size:
+#@     type: string
+#@     description: The size of the image
+#@     default: medium
+#@     required: false
+#@ outputs:
+#@   topic:
+#@     type: string
 #@ description: An image-maker
 
  {{topic}}.

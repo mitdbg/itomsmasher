@@ -91,7 +91,7 @@ class PreprocessedDSL(DSLProcessor):
 
             moduleInputs = {}
             providedInputs = dict(kwargs)
-            for inputName in program.inputs:
+            for inputName in program.inputs.keys():
                 if inputName not in providedInputs:
                     return dict(error="ERROR: includeFn could not find input: " + inputName,
                                 succeeded=False)

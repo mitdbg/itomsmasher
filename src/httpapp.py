@@ -52,7 +52,7 @@ def index():
     templateCode = """
     <style>{{css}}</style>
     <style>{{cssAppend}}</style>
-    <h1>Available Programs</h1>
+    <h1><a href="/" style="text-decoration: none; color: inherit;"><span>🧠</span></a> Available Programs</h1>
     <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
         <thead>
             <tr style="background-color: rgb(229,228,228);">
@@ -109,6 +109,10 @@ def index():
     html = template.render(programs=programs, css=css, cssAppend=cssAppend)
     return html
 
+@app.route('/rendered/<program_id>')
+def rendered(program_id):
+    return "Test result for program " + program_id
+
 @app.route('/view/<program_name>')
 def view_program(program_name):
     program = programDirectory.getProgram(program_name)
@@ -116,7 +120,7 @@ def view_program(program_name):
     templateCode = """
     <style>{{css}}</style>
 
-    <h1>Program Details</h1>
+    <h1><a href="/" style="text-decoration: none; color: inherit;"><span>🧠</span></a> Program Details</h1>
     <div style="background-color: rgb(229,228,228); border-radius: 8px; padding: 20px; margin: 20px 0;">
     <h1>{{program.name}}</h1>
     <p>{{program.description}}</p>
@@ -124,61 +128,117 @@ def view_program(program_name):
     <p>Last Modified: {{program.modified | datetimeformat}}</p>
     </div>
 
-    
+    <div style="background-color: rgb(229,228,228); border-radius: 8px; padding: 20px; margin: 20px 0;">
+    <h2>Test Inputs</h2>
+
+    {% if not program.inputs %}
+        <p>No inputs</p>
+    {% else %}
+    <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
+        <thead>
+            <tr style="background-color: rgb(210,210,210);">
+                <th style="padding: 12px; text-align: left; border-bottom: 2px solid #ddd;">Parameter</th>
+                <th style="padding: 12px; text-align: left; border-bottom: 2px solid #ddd;">Description</th>
+                <th style="padding: 12px; text-align: left; border-bottom: 2px solid #ddd;">Required</th>
+                <th style="padding: 12px; text-align: left; border-bottom: 2px solid #ddd;">Default Value</th>
+                <th style="padding: 12px; text-align: left; border-bottom: 2px solid #ddd;">Value</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for param_name, param_info in program.inputs.items() %}
+            <tr style="background-color: rgb(240,240,240);">
+                <td style="padding: 12px; border-bottom: 1px solid #ddd;">{{param_name}}</td>
+                <td style="padding: 12px; border-bottom: 1px solid #ddd;">{{param_info.get('description', '')}}</td>
+                <td style="padding: 12px; border-bottom: 1px solid #ddd;">{{param_info.get('required', False)}}</td>
+                <td style="padding: 12px; border-bottom: 1px solid #ddd;">{{param_info.get('default', '')}}</td>
+                <td style="padding: 12px; border-bottom: 1px solid #ddd;">
+                    <input type="text" 
+                           id="param_{{param_name}}"
+                           name="{{param_name}}"
+                           value="{{param_info.get('default', '')}}"
+                           style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                </td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    {% endif %}
+    </div>
+
     <div style="margin: 20px 0;">
-        <div style="display: inline-block; margin-right: 10px;">
-            <button id="codeButton" style="padding: 8px 16px; border-radius: 4px; border: none; background-color: #007bff; color: white; cursor: pointer;">Code</button>
-        </div>
-        <div style="display: inline-block;">
-            <button id="documentButton" style="padding: 8px 16px; border-radius: 4px; border: none; background-color: #e0e0e0; color: black; cursor: pointer;">Document</button>
-        </div>
+    <div style="display: inline-block; margin-right: 10px;">
+        <button id="codeButton" style="padding: 8px 16px; border-radius: 4px; border: none; background-color: #007bff; color: white; cursor: pointer;">Code</button>
+    </div>
+    <div style="display: inline-block;">
+        <button id="documentButton" style="padding: 8px 16px; border-radius: 4px; border: none; background-color: #e0e0e0; color: black; cursor: pointer;">Document</button>
+    </div>
     </div>
 
     <div id="codeView" style="display: block;">
-        <div style="background-color: rgb(229,228,228); border-radius: 8px; padding: 20px; margin: 20px 0; font-family: Courier, monospace;">
-            <pre style="white-space: pre-wrap;">{{program.getLatestCode()}}</pre>
-        </div>
+    <div style="background-color: rgb(229,228,228); border-radius: 8px; padding: 20px; margin: 20px 0; font-family: Courier, monospace;">
+        <pre style="white-space: pre-wrap;">{{program.getLatestCode()}}</pre>
+    </div>
     </div>
 
     <div id="documentView" style="display: none;">
-        <iframe src="https://web.mit.edu" style="width: 100%; height: 600px; border: none; border-radius: 8px;"></iframe>
+    <div id="documentContent" style="background-color: white; padding: 20px; border-radius: 8px; min-height: 400px;">
+        <!-- AJAX-loaded content will appear here -->
+        <em>Loading...</em>
+    </div>
     </div>
 
     <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            const codeButton = document.getElementById("codeButton");
-            const documentButton = document.getElementById("documentButton");
-            const codeView = document.getElementById("codeView");
-            const documentView = document.getElementById("documentView");
+    document.addEventListener("DOMContentLoaded", function() {
+        const codeButton = document.getElementById("codeButton");
+        const documentButton = document.getElementById("documentButton");
+        const codeView = document.getElementById("codeView");
+        const documentView = document.getElementById("documentView");
+        const documentContent = document.getElementById("documentContent");
 
-            codeButton.addEventListener("click", function() {
-                codeButton.style.backgroundColor = "#007bff";
-                codeButton.style.color = "white";
-                documentButton.style.backgroundColor = "#e0e0e0";
-                documentButton.style.color = "black";
-                codeView.style.display = "block";
-                documentView.style.display = "none";
-            });
+        let documentLoaded = false;
 
-            documentButton.addEventListener("click", function() {
-                documentButton.style.backgroundColor = "#007bff";
-                documentButton.style.color = "white";
-                codeButton.style.backgroundColor = "#e0e0e0";
-                codeButton.style.color = "black";
-                documentView.style.display = "block";
-                codeView.style.display = "none";
-            });
+        codeButton.addEventListener("click", function() {
+        codeButton.style.backgroundColor = "#007bff";
+        codeButton.style.color = "white";
+        documentButton.style.backgroundColor = "#e0e0e0";
+        documentButton.style.color = "black";
+        codeView.style.display = "block";
+        documentView.style.display = "none";
         });
+
+        documentButton.addEventListener("click", function() {
+        documentButton.style.backgroundColor = "#007bff";
+        documentButton.style.color = "white";
+        codeButton.style.backgroundColor = "#e0e0e0";
+        codeButton.style.color = "black";
+        documentView.style.display = "block";
+        codeView.style.display = "none";
+
+        if (!documentLoaded) {
+            fetch("/rendered/{{program.name}}")
+            .then(response => {
+                if (!response.ok) throw new Error("Failed to load document");
+                return response.text();
+            })
+            .then(html => {
+                documentContent.innerHTML = html;
+                documentLoaded = true;
+            })
+            .catch(error => {
+                documentContent.innerHTML = "<p style='color: red;'>Error loading document.</p>";
+                console.error(error);
+            });
+        }
+        });
+    });
     </script>
-"""    
+    """
+
     def datetimeformat(value, format="%Y-%m-%d %H:%M"):
         if isinstance(value, str):
             value = datetime.fromisoformat(value)
         return value.strftime("%B %d, %Y %I:%M %p")
 
-    print("Searching for program: ", program_name)
-    print("Program: ", program.name)
-    print("Code: ", program.getLatestCode())
     env = Environment(loader=BaseLoader)
     env.filters["datetimeformat"] = datetimeformat
     template = env.from_string(templateCode)

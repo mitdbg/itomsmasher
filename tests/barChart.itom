@@ -1,7 +1,16 @@
 #@ dsl: vega-lite
 #@ description: a basic bar chart
-#@ input: width
-#@ input: height
+#@ inputs:
+#@   width:
+#@     type: number
+#@     description: The width of the chart
+#@     default: 400
+#@     required: true
+#@   height:
+#@     type: number
+#@     description: The height of the chart
+#@     default: 400
+#@     required: true
 
 {
   "$schema": "https://vega.github.io/schema/vega-lite/v6.json",

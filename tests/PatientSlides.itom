@@ -1,6 +1,7 @@
 #@ dsl: slidevideo
-#@ config: instructions='speak in an academic voice, but not boring'
-#@ config: voice = 'alloy'
+#@ config: 
+#@   instructions: speak in an academic voice, but not boring
+#@   voice: alloy
 #@ description: A very cool slide deck
 
 {% set name = 'Alice' %}

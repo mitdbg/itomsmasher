@@ -1,7 +1,14 @@
 #@ dsl: javascript
-#@ input: originalArray the array to sort
-#@ input: steps number of steps to take
-#@ output: numbers
+#@ inputs:
+#@   originalArray:
+#@     type: list
+#@     description: The array to sort
+#@     required: true
+#@   steps:
+#@     type: number
+#@     description: The number of steps to take
+#@     required: true
+#@ outputs: numbers
 #@ description: a bubble sort implementation
 
 () => {

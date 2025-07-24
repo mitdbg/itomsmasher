@@ -1,7 +1,16 @@
 #@ dsl: basic
 #@ description: A basic test of an included program for the Jinja DSL revision
-#@ input: a
-#@ input: b  
+#@ inputs:
+#@   a:
+#@     type: number
+#@     description: The first number
+#@     default: 10
+#@     required: true
+#@   b:
+#@     type: number
+#@     description: The second number
+#@     default: 20
+#@     required: true
 
 ### COMPUTING: {{a}} + {{b}} == {{a+b}}
 

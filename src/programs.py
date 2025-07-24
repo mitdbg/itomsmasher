@@ -46,7 +46,7 @@ class NamedProgram:
                  modified: int,
                  description: str,
                  dslId: str,
-                 inputs: List[Tuple[str, dict]],
+                 inputs: dict[str, dict],
                  outputs: List[Tuple[str, dict]],
                  rawCodeVersions: List[str],
                  codeVersions: List[str],
@@ -70,51 +70,89 @@ class NamedProgram:
         # The header is a list of #@-prefixed lines. Each line is a key-value pair of the form "key: value".
         # The header should be removed from the code text.
         # Once we hit a line that is not prefixed with #@, we stop parsing the header.
+        import yaml
+        import io
 
-        header = []
-        inHeader = True
-        remainingCodeLines = []
+        # Extract header lines
+        header_lines = []
+        code_lines = []
+        in_header = True
+
         for line in code.split("\n"):
-            if inHeader and line.startswith("#@"):
-                # Remove the #@ prefix
-                line = line[2:]
-                header.append(line)
+            if in_header and line.startswith("#@"):
+                # Remove #@ prefix and append to header
+                header_lines.append(line[2:].rstrip())
             else:
-                inHeader = False
-                remainingCodeLines.append(line)
+                in_header = False
+                code_lines.append(line)
 
-        # Parse the header
-        remainingCode = "\n".join(remainingCodeLines)
-        description = ""
-        dslId = None
-        inputs = []
-        outputs = []
-        config = {}
-        for line in header:
-            key, value = line.split(":")
-            key = key.strip()
-            value = value.strip()
-            if key == "description":
-                description += value + "\n"
-            elif key == "dsl":
-                if dslId is not None:
-                    raise ValueError(f"Multiple dslId values in header: {dslId} and {value}")
-                dslId = value
-            elif key == "input":
-                inputs.append(value)
-            elif key == "output":
-                outputs.append(value)
-            elif key == "config":
-                # format of config is var = value
-                try:
-                    var, value2 = value.split("=")
-                    var = var.strip()
-                    value = value2.strip()
-                    config[var] = eval(value2)
-                except Exception as e:
-                    raise ValueError(f"Invalid config value: {value} - {e}")
-            else:
-                raise ValueError(f"Unknown header key: {key}")
+        # Parse header as YAML
+        try:
+            header_yaml = yaml.safe_load(io.StringIO("\n".join(header_lines)))
+        except yaml.YAMLError as e:
+            raise ValueError(f"Invalid YAML in header: {str(e)}")
+
+        if not isinstance(header_yaml, dict):
+            raise ValueError("Header YAML must be a dictionary/mapping")
+        
+        # Extract required fields
+        description = header_yaml.get("description", "")
+        dslId = header_yaml.get("dsl")
+        inputs = header_yaml.get("inputs", {})
+        outputs = header_yaml.get("outputs", [])
+        config = header_yaml.get("config", {})
+
+        if dslId is None:
+            raise ValueError("No dsl field found in header")
+
+        remainingCode = "\n".join(code_lines)
+
+        if False:
+
+            header = []
+            inHeader = True
+            remainingCodeLines = []
+            for line in code.split("\n"):
+                if inHeader and line.startswith("#@"):
+                    # Remove the #@ prefix
+                    line = line[2:]
+                    header.append(line)
+                else:
+                    inHeader = False
+                    remainingCodeLines.append(line)
+
+            # Parse the header
+            remainingCode = "\n".join(remainingCodeLines)
+            description = ""
+            dslId = None
+            inputs = []
+            outputs = []
+            config = {}
+            for line in header:
+                key, value = line.split(":")
+                key = key.strip()
+                value = value.strip()
+                if key == "description":
+                    description += value + "\n"
+                elif key == "dsl":
+                    if dslId is not None:
+                        raise ValueError(f"Multiple dslId values in header: {dslId} and {value}")
+                    dslId = value
+                elif key == "input":
+                    inputs.append(value)
+                elif key == "output":
+                    outputs.append(value)
+                elif key == "config":
+                    # format of config is var = value
+                    try:
+                        var, value2 = value.split("=")
+                        var = var.strip()
+                        value = value2.strip()
+                        config[var] = eval(value2)
+                    except Exception as e:
+                        raise ValueError(f"Invalid config value: {value} - {e}")
+                else:
+                    raise ValueError(f"Unknown header key: {key}")
 
         if dslId is None:
             raise ValueError("No dslId found in header")

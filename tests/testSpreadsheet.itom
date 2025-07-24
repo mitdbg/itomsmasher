@@ -1,6 +1,9 @@
 #@ dsl: spreadsheet
-#@ input: x
-#@ output: A8
+#@ inputs:
+#@   x:
+#@     type: number
+#@     description: The input value
+#@     required: true
 #@ description: A test spreadsheet
 
 A1: 10
