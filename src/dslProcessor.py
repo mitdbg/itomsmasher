@@ -205,7 +205,7 @@ class BasicDSLProcessor(PreprocessedDSL):
         if preferredVisualReturnType == "html":
             return ProgramOutput(time.time(), "html", html, processedOutputState)
         elif preferredVisualReturnType == "md":
-            return ProgramOutput(time.time(), "md", outputText, processedOutputState)
+            return ProgramOutput(time.time(), "md", processedCode, processedOutputState)
         elif preferredVisualReturnType == "png":
             with sync_playwright() as p:
                 browser = p.chromium.launch()

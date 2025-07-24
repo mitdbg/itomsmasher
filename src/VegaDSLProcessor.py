@@ -28,6 +28,9 @@ class VegaDSLProcessor(BasicDSLProcessor):
         else:
             code = str(result.viz())
 
+        if "_forceformat" in input:
+            preferredVisualReturnType = input["_forceformat"]
+
         #print(f"code: {code}")
         chart_json = json.loads(str(code))
         
@@ -35,6 +38,8 @@ class VegaDSLProcessor(BasicDSLProcessor):
         if preferredVisualReturnType == "json":
             return ProgramOutput(time.time(), "json", chart_json, {})
         
+
+
         # make the chart
         chart = alt.Chart.from_json(json.dumps(chart_json))
 
@@ -50,6 +55,8 @@ class VegaDSLProcessor(BasicDSLProcessor):
             chart.save(f"{guid}.out",format="svg")
         elif preferredVisualReturnType == "pdf":
             chart.save(f"{guid}.out",format="pdf")
+        elif preferredVisualReturnType == "md":
+            chart.save(f"{guid}.out",format="png")
         else:
             raise ValueError(f"Invalid visual return type: {preferredVisualReturnType}")
 
