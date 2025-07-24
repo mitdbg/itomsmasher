@@ -11,6 +11,7 @@ import os
 import time
 import shutil
 from dotenv import dotenv_values
+import pkg_resources
 
 class PlaceHolderDSLProcessor(BasicDSLProcessor):
     def __init__(self, programDirectory: ProgramDirectory):
@@ -19,6 +20,13 @@ class PlaceHolderDSLProcessor(BasicDSLProcessor):
     
     def getVisualReturnTypes(self) -> List[str]:
         return ["html"]
+    
+    def getInstalledPackages(self) -> List[str]:
+        installed_packages = pkg_resources.working_set
+        installed = []
+        for i in installed_packages:
+            installed.append(f"{i.key}")
+        return installed
     
     def process(self, code: str, input: dict, outputNames: List[str], preferredVisualReturnType: str,config:dict) -> ProgramOutput:
         if preferredVisualReturnType not in self.getVisualReturnTypes():
@@ -32,11 +40,15 @@ class PlaceHolderDSLProcessor(BasicDSLProcessor):
 
         itomidstring = ""
         innerInput = {}
+        forceRefresh = False
         for key, value in sorted(input.items()):
-            itomidstring += f"{key}: {value}\n"
+            if key != "_forceRefresh":
+                itomidstring += f"{key}: {value}\n"
             # if the key doesn't start with _, add it to the innerInput
             if not key.startswith("_"):
                 innerInput[key] = value
+            if key == "_forceRefresh":
+                forceRefresh = value
         for key, value in sorted(config.items()):
             itomidstring += f"{key}: {value}\n"
         for key in sorted(outputNames):
@@ -49,15 +61,18 @@ class PlaceHolderDSLProcessor(BasicDSLProcessor):
         if not os.path.exists(".genitomcache"):
             os.makedirs(".genitomcache")
 
-        try:
-            program = self.programDirectory.getProgram(f"itom_{itomhash}")
-            # Load and refresh the program directory
-            programExecutor = self.programDirectory.getProgramExecutor()
-            programOutput = programExecutor.executeProgram(program.name, ProgramInput(startTimestamp=0, inputs=innerInput), preferredVisualReturnType=preferredVisualReturnType, config={})
-            return programOutput
-        except Exception as e:
-            #print(e)
-            print("Program doesn't exist, attempting to create it ", e)
+        if not forceRefresh:
+            try:
+                program = self.programDirectory.getProgram(f"itom_{itomhash}")
+                # Load and refresh the program directory
+                programExecutor = self.programDirectory.getProgramExecutor()
+                programOutput = programExecutor.executeProgram(program.name, ProgramInput(startTimestamp=0, inputs=innerInput), preferredVisualReturnType=preferredVisualReturnType, config={})
+                return programOutput
+            except Exception as e:
+                #print(e)
+                print("Program doesn't exist, attempting to create it ", e)
+        else:
+            print("Force refreshing generated itom")
 
         context = input['_context']
         outputNames = input['_outputs']
@@ -76,8 +91,12 @@ The function should not call any network functions or modify any files.
 If you need to make up data, use a random generator that outputs reasonable values 
 given the context.
 
-Only return the code completion! No other text. Do not use any libraries that would
-require installation. Any imports or sub-functions should be *inside* the function.
+Only return the code completion! No other text. 
+
+The following packages are installed and can be used:
+{self.getInstalledPackages()}
+
+Do not use any other libraries that would require installation. Any imports or sub-functions should be *inside* the function.
 
 Write the rest of the program:
         """
@@ -107,7 +126,7 @@ Write the rest of the program:
 
 """
         
-        ret_template = "# returns: {"
+#        print(prompt)
 
         #print(signature)
         #print(prompt)
