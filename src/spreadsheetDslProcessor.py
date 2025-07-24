@@ -13,6 +13,9 @@ class SpreadsheetDSLProcessor(PreprocessedDSL):
     def getVisualReturnTypes(self) -> List[str]:
         return ["html", "png"]
     
+    def getIncludableTypes(self) -> List[str]:
+        return ["html"]
+
     def postprocess(self, processedCode: str, processedOutputState: dict, input: dict, outputNames: List[str], preferredVisualReturnType: str, config:dict) -> ProgramOutput:
         if preferredVisualReturnType not in self.getVisualReturnTypes():
             raise ValueError(f"Invalid visual return type: {preferredVisualReturnType}")

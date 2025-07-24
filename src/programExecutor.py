@@ -30,6 +30,10 @@ class ProgramExecutor:
         }
         self.programDirectory.setProgramExecutor(self)
 
+    def getVisualReturnTypesForProgram(self, program: NamedProgram) -> list[str]:
+        dslProcessor = self.availableDSLProcessors[program.dslId]
+        return dslProcessor.getVisualReturnTypes()
+
     def executeProgram(self, programName: str, input: ProgramInput, preferredVisualReturnType: Optional[str] = None, inferInputs: bool = False, callingProgramContext: Optional[str] = None,config: Optional[dict] = None) -> ProgramOutput:
         program = self.programDirectory.getProgram(programName)
         if program.dslId not in self.availableDSLProcessors:

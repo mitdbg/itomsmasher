@@ -31,9 +31,8 @@ class PreprocessedDSL(DSLProcessor):
         super().__init__()
         self.programDirectory = programDirectory
 
-    def getIncludableReturnTypes(self) -> List[str]:
+    def getIncludableTypes(self) -> List[str]:
         raise NotImplementedError("PreprocessedDSL is an abstract class and cannot be instantiated directly")
-
 
     def process(self, code: str, input: dict, outputNames: List[str], preferredVisualReturnType: str, config:dict) -> ProgramOutput:
         processedCode, processedOutput = self.preprocess(code, input, outputNames, preferredVisualReturnType, config)
@@ -110,11 +109,16 @@ class PreprocessedDSL(DSLProcessor):
             #
             # IN THIS LOCATION, FIGURE OUT WHAT DATA TYPE TO ASK FOR
             #
-            programOutput = ProgramExecutor(self.programDirectory).executeProgram(programName, 
-                                                                                  {"startTimestamp": time.time(), 
-                                                                                   "inputs": moduleInputs}, 
-                                                                                   preferredVisualReturnType,
-                                                                                   program.config)
+            executor = ProgramExecutor(self.programDirectory)
+            includedModuleReturnTypes = executor.getVisualReturnTypesForProgram(program)
+            if len(includedModuleReturnTypes) == 0:
+                raise ValueError(f"ERROR: included program {programName} cannot return any of the includable types: {self.getIncludableTypes()}")
+            targetReturnType = includedModuleReturnTypes[0]
+            programOutput = executor.executeProgram(programName, 
+                                                    {"startTimestamp": time.time(), 
+                                                    "inputs": moduleInputs}, 
+                                                    targetReturnType,
+                                                    program.config)
             if not programOutput.succeeded():
                 return dict(error="ERROR: program " + programName + " failed with message: " + programOutput.errorMessage(),
                             succeeded=False)
@@ -138,14 +142,15 @@ class PreprocessedDSL(DSLProcessor):
         return outputText, outputState
 
 
-
-
 class BasicDSLProcessor(PreprocessedDSL):
     def __init__(self, programDirectory: ProgramDirectory):
         super().__init__(programDirectory)
 
     def getVisualReturnTypes(self) -> List[str]:
-        return ["html", "png","md"]
+        return ["html", "png", "md"]
+    
+    def getIncludableTypes(self) -> List[str]:
+        return ["html", "png", "md"]
 
     # The semantics of this DSL are as follows:
     # 1. Every module is purely functional
