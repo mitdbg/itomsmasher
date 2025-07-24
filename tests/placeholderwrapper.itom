@@ -1,0 +1,18 @@
+#@ dsl: basic
+#@ description: a test
+
+{% set results = include("placeholder",_context="A patient record given a specific name",name='Bob',_outputs=['name','dob','first_admission_date','symptom_list'],_forceRefresh=False) %}
+
+{{results.visual}}
+
+I have a patient named:
+{{results.data.name}}
+
+Their date of birth is:
+{{results.data.dob}}
+
+Their symptoms are:
+{{results.data.symptom_list}}
+
+They were first admitted on:
+{{results.data.first_admission_date}}

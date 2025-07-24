@@ -22,7 +22,7 @@ class DSLProcessor:
         # Create pair of input and empty output
         latestCode = program.codeVersions[-1]
         latestExecutionHistory = program.executions[-1]
-        programOutput = self.process(latestCode, input["inputs"], program.outputs, preferredVisualReturnType)
+        programOutput = self.process(latestCode, input["inputs"], program.outputs, preferredVisualReturnType, program.config)
         latestExecutionHistory.append((input, programOutput))
         return programOutput
 
@@ -34,14 +34,15 @@ class PreprocessedDSL(DSLProcessor):
     def getIncludableReturnTypes(self) -> List[str]:
         raise NotImplementedError("PreprocessedDSL is an abstract class and cannot be instantiated directly")
 
-    def process(self, code: str, input: dict, outputNames: List[str], preferredVisualReturnType: str) -> ProgramOutput:
-        processedCode, processedOutput = self.preprocess(code, input, outputNames, preferredVisualReturnType)
-        return self.postprocess(processedCode, processedOutput, input, outputNames, preferredVisualReturnType)
 
-    def postprocess(self, processedCode: str, processedOutputState: dict, input: dict, outputNames: List[str], preferredVisualReturnType: str) -> ProgramOutput:
+    def process(self, code: str, input: dict, outputNames: List[str], preferredVisualReturnType: str, config:dict) -> ProgramOutput:
+        processedCode, processedOutput = self.preprocess(code, input, outputNames, preferredVisualReturnType, config)
+        return self.postprocess(processedCode, processedOutput, input, outputNames, preferredVisualReturnType, config)
+
+    def postprocess(self, processedCode: str, processedOutputState: dict, input: dict, outputNames: List[str], preferredVisualReturnType: str, config:dict) -> ProgramOutput:
         raise NotImplementedError("PreprocessedDSL is an abstract class and cannot be instantiated directly")
 
-    def preprocess(self, code: str, input: dict, outputNames: List[str], preferredVisualReturnType: str) -> Tuple[str, dict]:
+    def preprocess(self, code: str, input: dict, outputNames: List[str], preferredVisualReturnType: str, config:dict) -> Tuple[str, dict]:
         # Use Jinja to process the document
         from jinja2 import Environment, BaseLoader, pass_context
 
@@ -96,6 +97,13 @@ class PreprocessedDSL(DSLProcessor):
                     return dict(error="ERROR: includeFn could not find input: " + inputName,
                                 succeeded=False)
                 moduleInputs[inputName] = providedInputs[inputName]
+            for inputName in providedInputs:
+                # add any extra inputs to the module inputs
+                if inputName not in moduleInputs:
+                    # print a warning that an input was used that was
+                    # not provided
+                    print(f"WARNING: input {inputName} in include but not in {programName} itom")
+                    moduleInputs[inputName] = providedInputs[inputName]
 
             from programExecutor import ProgramExecutor
 
@@ -105,7 +113,8 @@ class PreprocessedDSL(DSLProcessor):
             programOutput = ProgramExecutor(self.programDirectory).executeProgram(programName, 
                                                                                   {"startTimestamp": time.time(), 
                                                                                    "inputs": moduleInputs}, 
-                                                                                   preferredVisualReturnType)
+                                                                                   preferredVisualReturnType,
+                                                                                   program.config)
             if not programOutput.succeeded():
                 return dict(error="ERROR: program " + programName + " failed with message: " + programOutput.errorMessage(),
                             succeeded=False)

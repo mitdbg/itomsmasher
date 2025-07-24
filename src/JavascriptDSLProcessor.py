@@ -45,7 +45,7 @@ class JavascriptDSLProcessor(DSLProcessor):
             # What else could it be?
             raise ValueError(f"Invalid return type during markdown preprocessing: {data}")
         
-    def process(self, code: str, input: dict, outputNames: List[str], preferredVisualReturnType: str) -> ProgramOutput:
+    def process(self, code: str, input: dict, outputNames: List[str], preferredVisualReturnType: str,config:dict) -> ProgramOutput:
         if preferredVisualReturnType not in self.getVisualReturnTypes():
             raise ValueError(f"Invalid visual return type: {preferredVisualReturnType}")
         

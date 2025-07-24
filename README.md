@@ -160,6 +160,17 @@ Slides are split using ---, e.g.:
 python src/cmdline.py -add tests/VideoSlideTest.itom
 python src/cmdline.py -run VideoSlideTest -output temp.mp4 -format mp4
 ```
+
+### Slides
+
+Similar to above, this will just generate an HTML slide deck
+
+**Usage**
+```bash
+python src/cmdline.py -add tests/SlideTest.itom
+python src/cmdline.py -run SlideTest -output slides.html -format html
+```
+
 ## Test Files
 
 - `tests/bubbleSort.itom` - Interactive bubble sort documentation (Basic DSL)

@@ -4,7 +4,10 @@ from aiImageDslProcessor import AIImageProcessor
 from spreadsheetDslProcessor import SpreadsheetDSLProcessor
 from VegaDSLProcessor import VegaDSLProcessor
 from JavascriptDSLProcessor import JavascriptDSLProcessor
+from PlaceHolderDSLProcessor import PlaceHolderDSLProcessor
 from SlideVideoDSLProcessor import SlideVideoDSLProcessor
+from SlideDSLProcessor import SlideDSLProcessor
+from PythonDSLProcessor import PythonDSLProcessor
 from typing import Optional
 import requests
 import json
@@ -20,10 +23,14 @@ class ProgramExecutor:
             #"vega-lite": VegaDSLProcessor(programDirectory),
             #"javascript": JavascriptDSLProcessor(programDirectory),
             "basic": BasicDSLProcessor(programDirectory),
-            "slidevideo": SlideVideoDSLProcessor(programDirectory)
+            "slidevideo": SlideVideoDSLProcessor(programDirectory),
+            "slides": SlideDSLProcessor(programDirectory),
+            "placeholder": PlaceHolderDSLProcessor(programDirectory),
+            "python": PythonDSLProcessor(programDirectory)
         }
+        self.programDirectory.setProgramExecutor(self)
 
-    def executeProgram(self, programName: str, input: ProgramInput, preferredVisualReturnType: Optional[str] = None, inferInputs: bool = False, callingProgramContext: Optional[str] = None) -> ProgramOutput:
+    def executeProgram(self, programName: str, input: ProgramInput, preferredVisualReturnType: Optional[str] = None, inferInputs: bool = False, callingProgramContext: Optional[str] = None,config: Optional[dict] = None) -> ProgramOutput:
         program = self.programDirectory.getProgram(programName)
         if program.dslId not in self.availableDSLProcessors:
             raise ValueError(f"DSL processor {program.dslId} not found")

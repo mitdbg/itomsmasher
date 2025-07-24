@@ -1,6 +1,4 @@
-#@ dsl: slidevideo
-#@ config: instructions='speak in an academic voice, but not boring'
-#@ config: voice = 'alloy'
+#@ dsl: slides
 #@ description: A very cool slide deck
 
 {% set name = 'Mike' %}
@@ -24,12 +22,6 @@
 ## This is a slide with no notes
 
 - And no speaking
-
----
-
-## This slide should have a nice picture
-{% set x = include("aiImagePrompt", topic="A picture of a cat traveling through time", size="large") %}
-{{x.visual}}
 
 ---
 

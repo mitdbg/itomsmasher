@@ -1,0 +1,7 @@
+#@ dsl: python
+#@ config: mainfunc='magic'
+#@ output: a
+
+def magic():
+    print("apple")
+    return({'a':'a'})

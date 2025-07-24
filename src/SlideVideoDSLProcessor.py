@@ -10,7 +10,7 @@ from typing import List, Any
 import os
 import time
 import shutil
-
+from dotenv import dotenv_values
 class SlideVideoDSLProcessor(BasicDSLProcessor):
     def __init__(self, programDirectory: ProgramDirectory):
         super().__init__(programDirectory)
@@ -19,23 +19,31 @@ class SlideVideoDSLProcessor(BasicDSLProcessor):
     def getVisualReturnTypes(self) -> List[str]:
         return ["mp4"]
     
-    def postprocess(self, processedCode: str, processedOutputState: dict, input: dict, outputNames: List[str], preferredVisualReturnType: str) -> ProgramOutput:
+    def postprocess(self, processedCode: str, processedOutputState: dict, input: dict, outputNames: List[str], preferredVisualReturnType: str, config: dict) -> ProgramOutput:
         if preferredVisualReturnType not in self.getVisualReturnTypes():
             raise ValueError(f"Invalid visual return type: {preferredVisualReturnType}")
 
         code = processedCode
 
         model = "gpt-4o-mini-tts"
-        if "model" in input:
-            model = input["model"]
+        if "model" in config:
+            model = config["model"]
         instructions = "Speak in a cheerful and positive tone."
-        if "instructions" in input:
-            instructions = input["instructions"]
+        if "instructions" in config:
+            instructions = config["instructions"]
         voice = "coral"
-        if "voice" in input:
-            voice = input["voice"]
+        if "voice" in config:
+            voice = config["voice"]
+
+        print(f"model: {model}, instructions: {instructions}, voice: {voice}")
  
-        client = OpenAI()
+        client = None
+        # if .env exists, load it
+        if os.path.exists(".env"):
+            env = dotenv_values(".env")
+            client = OpenAI(api_key=env["OPENAI_API_KEY"])
+        else:
+            client = OpenAI()
 
         speech_cache = ".speech_cache"
         # create a speech_cache folder if it doesn't exist
