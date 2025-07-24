@@ -17,7 +17,7 @@ class SlideDSLProcessor(BasicDSLProcessor):
         self.programDirectory = programDirectory
     
     def getVisualReturnTypes(self) -> List[str]:
-        return ["html"]
+        return ["html","md"]
     
     def process(self, code: str, input: dict, outputNames: List[str], preferredVisualReturnType: str,config:dict) -> ProgramOutput:
         if preferredVisualReturnType not in self.getVisualReturnTypes():
@@ -40,20 +40,30 @@ class SlideDSLProcessor(BasicDSLProcessor):
         with open(infile, "w") as file:
             file.write(prepend + code)
 
-        # run the marp command to crate the html
-        os.system(f"marp {infile} -o {outfile}");
+        # if the the preferred visual return type is html, run the marp command to crate the html
+        if preferredVisualReturnType == "html":
+            os.system(f"marp {infile} -o {outfile}");
 
-        # read the html file into a string
-        with open(outfile, "r") as file:
-            html_string = file.read()
+            # read the html file into a string
+            with open(outfile, "r") as file:
+                html_string = file.read()
+
+        with open(infile, "r") as file:
+            md_string = file.read()
 
         # delete the temp files
-        os.remove(infile)
-        os.remove(outfile)
+        # if infile exists, delete it
+        if os.path.exists(infile):
+            os.remove(infile)
+        # if outfile exists, delete it
+        if os.path.exists(outfile):
+            os.remove(outfile)
 
         # return the html string
         if preferredVisualReturnType == "html":
             return ProgramOutput(time.time(), "html", html_string, {})
+        elif preferredVisualReturnType == "md":
+            return ProgramOutput(time.time(), "md", md_string, {})
         else:
             raise ValueError(f"Invalid visual return type: {preferredVisualReturnType}")
         

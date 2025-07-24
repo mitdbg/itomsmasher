@@ -5,28 +5,46 @@ import os
 from pydub import AudioSegment
 import uuid
 from dslProcessor import DSLProcessor, BasicDSLProcessor
+from SlideDSLProcessor import SlideDSLProcessor
 from programs import ProgramOutput, ProgramDirectory
 from typing import List, Any
 import os
 import time
 import shutil
 from dotenv import dotenv_values
-class SlideVideoDSLProcessor(BasicDSLProcessor):
+class SlideVideoDSLProcessor(SlideDSLProcessor):
     def __init__(self, programDirectory: ProgramDirectory):
         super().__init__(programDirectory)
         self.programDirectory = programDirectory
     
     def getVisualReturnTypes(self) -> List[str]:
-        return ["mp4"]
+        return ["mp4","md","html"]
     
     def process(self, code: str, input: dict, outputNames: List[str], preferredVisualReturnType: str,config:dict) -> ProgramOutput:
         if preferredVisualReturnType not in self.getVisualReturnTypes():
             raise ValueError(f"Invalid visual return type: {preferredVisualReturnType}")
-        result = super().process(code, input, outputNames, "md",config)
-        if not result.succeeded():
-            return dict(error="ERROR: program failed with message: " + result.errorMessage(),
-                        succeeded=False)
+        if preferredVisualReturnType == "md":
+            # just want the md, so use the SlideDSL processor
+            result = super().process(code, input, outputNames, "md",config)
+            if not result.succeeded():
+                return dict(error="ERROR: program failed with message: " + result.errorMessage(),
+                            succeeded=False)
+            else:
+                return result
+        elif preferredVisualReturnType == "html":
+            # just want the html, so use the SlideDSL processor
+            result = super().process(code, input, outputNames, "html",config)
+            if not result.succeeded():
+                return dict(error="ERROR: program failed with message: " + result.errorMessage(),
+                            succeeded=False)
+            else:
+                return result
         else:
+            # want the video so we'll need to generate the md first
+            result = super().process(code, input, outputNames, "md",config)
+            if not result.succeeded():
+                return dict(error="ERROR: program failed with message: " + result.errorMessage(),
+                            succeeded=False)
             code =str(result.viz())
             
         model = "gpt-4o-mini-tts"
@@ -60,12 +78,12 @@ class SlideVideoDSLProcessor(BasicDSLProcessor):
         if not os.path.exists(tempdir):
             os.makedirs(tempdir)
 
-        prepend = "---\nmarp: true\ntheme: custom-default\n---\n"
+        #prepend = "---\nmarp: true\ntheme: custom-default\n---\n"
 
         # save the code to a temporary file
         filename = f"{tempdir}/slides.itom"
         with open(filename, "w") as file:
-            file.write(prepend + code)
+            file.write(code)
 
         # run the marp command to crate the images
         os.system(f"marp --images png {filename} -o {tempdir}/temp");
