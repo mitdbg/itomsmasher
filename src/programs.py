@@ -1,6 +1,7 @@
 import sys
 import json
 import os
+from datetime import datetime
 from typing import Optional, List, Tuple, TypedDict, Any
 
 # ProgramInput is a class that represents the input of a program
@@ -41,6 +42,8 @@ class ProgramOutput:
 class NamedProgram:
     def __init__(self, 
                  name: str, 
+                 created: int,
+                 modified: int,
                  description: str,
                  dslId: str,
                  inputs: List[Tuple[str, dict]],
@@ -50,6 +53,8 @@ class NamedProgram:
                  executions: List[List[Tuple[ProgramInput, ProgramOutput]]],
                  config: dict):
         self.name = name
+        self.created = created
+        self.modified = modified
         self.description = description
         self.dslId = dslId
         self.inputs = inputs
@@ -120,12 +125,14 @@ class NamedProgram:
     @classmethod
     def from_code(cls, name: str, rawCode: str) -> "NamedProgram":
         remainingCode, description, dslId, inputs, outputs, config = cls.__processCodeHeader__(rawCode)
-        return cls(name, description, dslId, inputs, outputs, [rawCode], [remainingCode], [[]], config)
+        return cls(name, datetime.now(), datetime.now(), description, dslId, inputs, outputs, [rawCode], [remainingCode], [[]], config)
 
     # init from dict
     @classmethod
     def from_dict(cls, dict: dict) -> "NamedProgram":
-        return cls(dict["name"], 
+        return cls(dict["name"],                    
+                   datetime.fromisoformat(dict["created"]),
+                   datetime.fromisoformat(dict["modified"]),
                    dict["description"], 
                    dict["dslId"], 
                    dict["inputs"],
@@ -144,6 +151,8 @@ class NamedProgram:
     def toJson(self) -> str:
         return json.dumps({
             "name": self.name,
+            "created": self.created.isoformat(),
+            "modified": self.modified.isoformat(),
             "description": self.description,
             "dslId": self.dslId,
             "inputs": self.inputs,
@@ -170,6 +179,7 @@ class NamedProgram:
         self.rawCodeVersions.append(newRawCode)
         self.codeVersions.append(newCode)
         self.executions.append([])
+        self.modified = datetime.now()
 
 # ProgramDirectory is a class that stores all the programs in the system
 class ProgramDirectory:
