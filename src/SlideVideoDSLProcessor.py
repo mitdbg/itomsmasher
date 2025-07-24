@@ -5,19 +5,20 @@ import os
 from pydub import AudioSegment
 import uuid
 from dslProcessor import DSLProcessor, BasicDSLProcessor
+from SlideDSLProcessor import SlideDSLProcessor
 from programs import ProgramOutput, ProgramDirectory
 from typing import List, Any
 import os
 import time
 import shutil
 from dotenv import dotenv_values
-class SlideVideoDSLProcessor(BasicDSLProcessor):
+class SlideVideoDSLProcessor(SlideDSLProcessor):
     def __init__(self, programDirectory: ProgramDirectory):
         super().__init__(programDirectory)
         self.programDirectory = programDirectory
     
     def getVisualReturnTypes(self) -> List[str]:
-        return ["mp4"]
+        return ["mp4","md","html"]
     
     def getIncludableTypes(self) -> List[str]:
         return ["html", "png", "md"]
@@ -59,12 +60,12 @@ class SlideVideoDSLProcessor(BasicDSLProcessor):
         if not os.path.exists(tempdir):
             os.makedirs(tempdir)
 
-        prepend = "---\nmarp: true\ntheme: custom-default\n---\n"
+        #prepend = "---\nmarp: true\ntheme: custom-default\n---\n"
 
         # save the code to a temporary file
         filename = f"{tempdir}/slides.itom"
         with open(filename, "w") as file:
-            file.write(prepend + code)
+            file.write(code)
 
         # run the marp command to crate the images
         os.system(f"marp --images png {filename} -o {tempdir}/temp");
