@@ -154,7 +154,7 @@ class BasicDSLProcessor(PreprocessedDSL):
     # 4. There is no interesting interactivity. All interactivity is at the interface level and anything permanent is a code change.
     #    (That is to say, there is no database or other form of state)
     # 5. Every module should be able to run to partial completion. An error does not bring it to a halt, but just makes the output worse
-    def postprocess(self, processedCode: str, processedOutputState: dict, input: dict, outputNames: List[str], preferredVisualReturnType: str) -> ProgramOutput:
+    def postprocess(self, processedCode: str, processedOutputState: dict, input: dict, outputNames: List[str], preferredVisualReturnType: str, config:dict) -> ProgramOutput:
         css = """<style>
             body {
                 background-color: rgb(246,190,23);
