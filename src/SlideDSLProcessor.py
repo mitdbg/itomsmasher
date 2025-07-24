@@ -22,10 +22,8 @@ class SlideDSLProcessor(BasicDSLProcessor):
     def getIncludableTypes(self) -> List[str]:
         return ["html", "png", "md"]
     
-    def process(self, code: str, input: dict, outputNames: List[str], preferredVisualReturnType: str,config:dict) -> ProgramOutput:
-        if preferredVisualReturnType not in self.getVisualReturnTypes():
-            raise ValueError(f"Invalid visual return type: {preferredVisualReturnType}")
-        result = super().process(code, input, outputNames, "md",config)
+    def postprocess(self, processedCode: str, processedOutputState: dict, input: dict, outputNames: List[str], preferredVisualReturnType: str, config:dict) -> ProgramOutput:
+        result = super().postprocess(processedCode, processedOutputState, input, outputNames, "md",config)
         if not result.succeeded():
             return dict(error="ERROR: program failed with message: " + result.errorMessage(),
                         succeeded=False)

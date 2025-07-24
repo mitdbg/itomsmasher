@@ -33,7 +33,7 @@ class AIImageProcessor(PreprocessedDSL):
             raise ValueError(f"Invalid size: {size}. Must be one of 'small', 'medium', or 'large'.")
 
         # trim whitespace from the code
-        code = code.strip()
+        code = processedCode.strip()
         print(f"Generating a {horizontalSize}x{verticalSize} image for prompt: {code}")
         import requests
 

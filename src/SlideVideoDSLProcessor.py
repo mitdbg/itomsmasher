@@ -18,7 +18,7 @@ class SlideVideoDSLProcessor(SlideDSLProcessor):
         self.programDirectory = programDirectory
     
     def getVisualReturnTypes(self) -> List[str]:
-        return ["mp4","md","html"]
+        return ["mp4"]
     
     def getIncludableTypes(self) -> List[str]:
         return ["html", "png", "md"]
