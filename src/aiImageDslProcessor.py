@@ -1,8 +1,4 @@
-<<<<<<< HEAD
 from dslProcessor import PreprocessedDSL
-=======
-from dslProcessor import BasicDSLProcessor
->>>>>>> ddb2032fcf482ac0b59c20ab67ecf72ac591e864
 from programs import ProgramOutput, ProgramDirectory
 from typing import List, Any
 import os

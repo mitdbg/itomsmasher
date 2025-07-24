@@ -13,9 +13,9 @@ import shutil
 from dotenv import dotenv_values
 import pkg_resources
 
-class PlaceHolderDSLProcessor(BasicDSLProcessor):
+class PlaceHolderDSLProcessor(DSLProcessor):
     def __init__(self, programDirectory: ProgramDirectory):
-        super().__init__(programDirectory)
+        super().__init__()
         self.programDirectory = programDirectory
     
     def getVisualReturnTypes(self) -> List[str]:
