@@ -1,4 +1,4 @@
-from dslProcessor import BasicDSLProcessor
+from dslProcessor import BasicDSLProcessor, PreprocessedDSL
 from programs import ProgramOutput, ProgramDirectory
 from typing import List, Any
 import time
@@ -9,37 +9,24 @@ import uuid
 import os
 
 # VegaDSLProcessor is a DSL processor for the Vega DSL
-class VegaDSLProcessor(BasicDSLProcessor):
+class VegaDSLProcessor(PreprocessedDSL):
     def __init__(self, programDirectory: ProgramDirectory):
         super().__init__(programDirectory)
 
     def getVisualReturnTypes(self) -> List[str]:
         return ["png", "html","svg","pdf","json","md"]
     
-    def process(self, code: str, input: dict, outputNames: List[str], preferredVisualReturnType: str,config:dict) -> ProgramOutput:
-        if preferredVisualReturnType not in self.getVisualReturnTypes():
-            raise ValueError(f"Invalid visual return type: {preferredVisualReturnType}")
-        
-        # do the templating stuff
-        result = super().process(code, input, outputNames, "md",config)
-        if not result.succeeded():
-            return dict(error="ERROR: program failed with message: " + result.errorMessage(),
-                        succeeded=False)
-        else:
-            code = str(result.viz())
-
-        if "_forceformat" in input:
-            preferredVisualReturnType = input["_forceformat"]
-
-        #print(f"code: {code}")
+    def getIncludableTypes(self) -> List[str]:
+        return ["html", "png"]
+    
+    def postprocess(self, processedCode: str, processedOutputState: dict, input: dict, outputNames: List[str], preferredVisualReturnType: str, config: dict) -> ProgramOutput:
+        code = processedCode
         chart_json = json.loads(str(code))
         
         # just want json, so we can be done
         if preferredVisualReturnType == "json":
             return ProgramOutput(time.time(), "json", chart_json, {})
         
-
-
         # make the chart
         chart = alt.Chart.from_json(json.dumps(chart_json))
 
@@ -68,7 +55,8 @@ class VegaDSLProcessor(BasicDSLProcessor):
 
         # remove the guid file {guid}.out if it exists
         if os.path.exists(f"{guid}.out"):
-            os.remove(f"{guid}.out")
+            #os.remove(f"{guid}.out")
+            pass
 
         outputData = {}
 

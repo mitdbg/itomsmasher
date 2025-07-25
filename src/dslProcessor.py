@@ -113,6 +113,8 @@ class PreprocessedDSL(DSLProcessor):
             includedModuleReturnTypes = executor.getVisualReturnTypesForProgram(program)
             if len(includedModuleReturnTypes) == 0:
                 raise ValueError(f"ERROR: included program {programName} cannot return any of the includable types: {self.getIncludableTypes()}")
+            
+
             targetReturnType = includedModuleReturnTypes[0]
             programOutput = executor.executeProgram(programName, 
                                                     {"startTimestamp": time.time(), 
@@ -123,8 +125,18 @@ class PreprocessedDSL(DSLProcessor):
                 return dict(error="ERROR: program " + programName + " failed with message: " + programOutput.errorMessage(),
                             succeeded=False)
             else:
+                # Convert the visual output to the target return type as needed
+                visualStringRepr = None
+                if targetReturnType == "html" or targetReturnType == "md":
+                    visualStringRepr = str(programOutput.viz())
+                elif targetReturnType == "png":
+                    # Convert PNG bytes to base64 encoded HTML image
+                    visualStringRepr = f'<img src="data:image/png;base64,{base64.b64encode(programOutput.viz()).decode("utf-8")}" />'
+                else:
+                    raise ValueError(f"ERROR: included program {programName} cannot return type: {targetReturnType}")
+
                 return dict(data=programOutput.data(),
-                            visual=str(programOutput.viz()),
+                            visual=visualStringRepr,
                             succeeded=True)
 
         # Register the new functions
