@@ -120,20 +120,23 @@ def view_program(program_name):
     templateCode = """
     <style>{{css}}</style>
 
-    <h1><a href="/" style="text-decoration: none; color: inherit;"><span>🧠</span></a> Program Details</h1>
-    <div style="background-color: rgb(229,228,228); border-radius: 8px; padding: 20px; margin: 20px 0;">
-    <h1>{{program.name}}</h1>
-    <p>{{program.description}}</p>
-    <p>Program Type: <span style="font-family: Courier, monospace; background-color: #e0e0e0; padding: 2px 6px; border-radius: 4px;">{{program.dslId}}</span></p>
-    <p>Last Modified: {{program.modified | datetimeformat}}</p>
+    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;">
+        <h1 style="margin: 0; display: flex; align-items: center; gap: 8px;">
+            <a href="/" style="text-decoration: none; color: inherit;"><span>🧠</span></a>
+            <span>{{program.name}}: {{program.description}}</span>
+        </h1>
+        <div style="display: flex; align-items: center; gap: 16px;">
+            <span style="font-family: Courier, monospace; background-color: #e0e0e0; padding: 2px 6px; border-radius: 4px; font-size: 0.8em;">{{program.dslId}}</span>
+            <span style="color: #666; font-size: 0.9em;">Last Modified: {{program.modified | datetimeformat}}</span>
+        </div>
     </div>
 
-    <div style="background-color: rgb(229,228,228); border-radius: 8px; padding: 20px; margin: 20px 0;">
-    <h2>Test Inputs</h2>
-
+    <div style="background-color: rgb(229,228,228); border-radius: 8px; padding: 12px 20px; margin: 20px 0;">
     {% if not program.inputs %}
-        <p>No inputs</p>
+        <em>No inputs</em>
     {% else %}
+    <h2 style="margin-top: 0;">Test Inputs</h2>
+
     <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
         <thead>
             <tr style="background-color: rgb(210,210,210);">
