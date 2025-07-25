@@ -8,6 +8,8 @@ from jinja2 import Environment, BaseLoader, pass_context
 import io
 import os
 import time
+from datetime import datetime
+
 
 app = Flask(__name__)
 
@@ -109,9 +111,18 @@ def index():
     html = template.render(programs=programs, css=css, cssAppend=cssAppend)
     return html
 
-@app.route('/rendered/<program_id>')
-def rendered(program_id):
-    return "Test result for program " + program_id
+@app.route('/rendered/<program_name>', methods=['POST', 'GET'])
+def rendered(program_name):
+    if request.method == 'GET':
+        inputs = request.args.get('inputs', '{}')
+    else:
+        inputs = request.json.get('inputs', {})
+
+    program = programDirectory.getProgram(program_name)
+    programOutput = programExecutor.executeProgram(program_name, ProgramInput(startTimestamp=0, inputs=inputs), preferredVisualReturnType="html", config=program.config)
+    viz = programOutput.viz()
+    print("Aboiutt to return viz", viz)
+    return viz
 
 @app.route('/view/<program_name>')
 def view_program(program_name):
@@ -218,13 +229,31 @@ def view_program(program_name):
         codeView.style.display = "none";
 
         if (!documentLoaded) {
-            fetch("/rendered/{{program.name}}")
+            fetch("/rendered/{{program.name}}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    inputs: getInputValues()
+                })
+            })
             .then(response => {
                 if (!response.ok) throw new Error("Failed to load document");
                 return response.text();
             })
             .then(html => {
-                documentContent.innerHTML = html;
+                // Clear previous content (if any)
+                documentContent.innerHTML = "";
+
+                // Create and insert iframe
+                const iframe = document.createElement('iframe');
+                iframe.style.width = "100%";
+                iframe.style.height = "500px";
+                iframe.style.border = "none";
+                iframe.srcdoc = html;
+
+                documentContent.appendChild(iframe);
                 documentLoaded = true;
             })
             .catch(error => {
@@ -234,6 +263,16 @@ def view_program(program_name):
         }
         });
     });
+    function getInputValues() {
+        const inputs = document.querySelectorAll("input[id^='param_']");
+        const values = {};
+        inputs.forEach(input => {
+            const paramName = input.name;
+            values[paramName] = input.value;
+        });
+        return values;
+    }
+
     </script>
     """
 
