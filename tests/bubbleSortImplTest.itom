@@ -2,6 +2,6 @@
 #@ description: A tutorial itom all about bubble sort
 
 # Welcome to the world of Bubble Sort
-{{x = [5,3,8,4,2]}}
-{{z = include("bubbleSortImpl",originalArray=x,steps=2)}}
+{% set x = [5,3,8,4,2] %}
+{% set z = include("bubbleSortImpl",originalArray=x,steps=2) %}
 {{z.data.numbers}}

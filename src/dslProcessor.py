@@ -15,7 +15,7 @@ class DSLProcessor:
     def getVisualReturnTypes(self) -> List[str]:
         raise NotImplementedError("DSLProcessor is an abstract class and cannot be instantiated directly")
     
-    def process(self, code: str, input: dict, outputNames: List[str], preferredVisualReturnType: str) -> ProgramOutput:
+    def process(self, code: str, input: dict, outputNames: List[str], preferredVisualReturnType: str, config:dict) -> ProgramOutput:
         raise NotImplementedError("DSLProcessor is an abstract class and cannot be instantiated directly")
 
     def runProgram(self, program: NamedProgram, input: ProgramInput, preferredVisualReturnType, config:dict) -> ProgramOutput:
@@ -135,7 +135,6 @@ class PreprocessedDSL(DSLProcessor):
                 else:
                     raise ValueError(f"ERROR: included program {programName} cannot return type: {targetReturnType}")
 
-                
                 if config.get("highlightIncludes", False):
                     # Create a tab with program name and any relevant metadata
                     # Build tab text with input parameters
@@ -145,7 +144,7 @@ class PreprocessedDSL(DSLProcessor):
                     dataOutputs = [f"{k}={v}" for k, v in programOutput.data().items()]
                     dataOutputsStr = ", ".join(dataOutputs)
 
-                    tabText = f'{programName} ({inputParamsStr}) --> ({dataOutputsStr})'
+                    tabText = f'{programName} ({inputParamsStr}): ({dataOutputsStr})'
 
                     # Make the program name clickable by wrapping it in an anchor tag
                     # Add target="_top" to make the link open in the top-level browser window

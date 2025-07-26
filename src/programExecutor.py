@@ -21,7 +21,7 @@ class ProgramExecutor:
             "aiimage": AIImageProcessor(programDirectory),
             "spreadsheet": SpreadsheetDSLProcessor(programDirectory),
             "vega-lite": VegaDSLProcessor(programDirectory),
-            #"javascript": JavascriptDSLProcessor(programDirectory),
+            "javascript": JavascriptDSLProcessor(programDirectory),
             "basic": BasicDSLProcessor(programDirectory),
             "slidevideo": SlideVideoDSLProcessor(programDirectory),
             "slides": SlideDSLProcessor(programDirectory),

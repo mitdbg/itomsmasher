@@ -8,7 +8,8 @@
 #@     type: number
 #@     description: The number of steps to take
 #@     required: true
-#@ outputs: numbers
+#@ outputs: 
+#@     - numbers
 #@ description: a bubble sort implementation
 
 () => {
@@ -25,5 +26,5 @@
         return arr;
     }
 
-    return bubbleSort(-#originalArray#-, -#steps#-);
+    return bubbleSort({{originalArray}}, {{steps}});
 }

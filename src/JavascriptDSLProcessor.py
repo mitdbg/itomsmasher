@@ -1,4 +1,4 @@
-from dslProcessor import DSLProcessor
+from dslProcessor import PreprocessedDSL
 from programs import ProgramOutput, ProgramDirectory
 from typing import List, Dict
 import time
@@ -9,13 +9,16 @@ from typing import List, Any
 import base64
 #need to fix this for return types/rendering
 
-class JavascriptDSLProcessor(DSLProcessor):
+class JavascriptDSLProcessor(PreprocessedDSL):
 
     def __init__(self, programDirectory: ProgramDirectory):
         super().__init__(programDirectory)
     
     def getVisualReturnTypes(self) -> List[str]:
         return ["html", "png"]
+
+    def getIncludableTypes(self) -> List[str]:
+        return ["javascript"]
 
     def __convertToLocalDSL__(self, data: Any) -> str:
         if data is None:
@@ -45,25 +48,20 @@ class JavascriptDSLProcessor(DSLProcessor):
             # What else could it be?
             raise ValueError(f"Invalid return type during markdown preprocessing: {data}")
         
-    def process(self, code: str, input: dict, outputNames: List[str], preferredVisualReturnType: str,config:dict) -> ProgramOutput:
+    def postprocess(self, processedCode: str, processedOutputState: dict, input: dict, outputNames: List[str], preferredVisualReturnType: str, config:dict) -> ProgramOutput:
         if preferredVisualReturnType not in self.getVisualReturnTypes():
             raise ValueError(f"Invalid visual return type: {preferredVisualReturnType}")
         
-        javascriptcode, finalVariables = self.__preprocess__(code, input, preferredVisualReturnType, startBlock="-#", endBlock="#-")
-
-        #print(javascriptcode);
-
-        retcode = pm.eval(javascriptcode);
+        retcode = pm.eval(processedCode);
         val = retcode();
-        #print(val);
 
         # Extract output data
         outputData = {}
         for outputName in outputNames:
             outputData[outputName] = val
-        
+
         if preferredVisualReturnType == "html":
-            return ProgramOutput(time.time(), preferredVisualReturnType, javascriptcode, outputData)
+            return ProgramOutput(time.time(), preferredVisualReturnType, processedCode, outputData)
         elif preferredVisualReturnType == "png":
             return ProgramOutput(time.time(), preferredVisualReturnType, self._generatePng(val), outputData)
         else:
