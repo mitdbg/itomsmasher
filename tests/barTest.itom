@@ -1,5 +1,7 @@
 #@ dsl: basic
 #@ description: A tutorial itom all about bubble sort
+#@ config:
+#@   highlightIncludes: true
 
 # Welcome to the world of Bubble Sort
 {% set x = include("barChart", width=100,height=100) %}

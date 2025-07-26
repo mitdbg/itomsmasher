@@ -75,7 +75,8 @@ def index():
                         {{program.description}}
                     </td>
                     <td style="padding: 12px; border-bottom: 1px solid #ddd;">
-                        {{program.dslId}}
+                     <span style="font-family: Courier, monospace; background-color: #e0e0e0; padding: 2px 6px; border-radius: 4px; font-size: 0.8em;">{{program.dslId}}</span>
+
                     </td>
                     <td style="padding: 12px; border-bottom: 1px solid #ddd;">
                         {{program.created | datetimeformat}}
@@ -115,19 +116,46 @@ def index():
 def rendered(program_name):
     if request.method == 'GET':
         inputs = request.args.get('inputs', '{}')
+        config = request.args.get('config', '{}')
     else:
         inputs = request.json.get('inputs', {})
+        config = request.json.get('config', {})
+
+    # Convert string inputs and config to Python types
+    # Handle common YAML-style type conversions
+    def convert_value(v):
+        if not isinstance(v, str):
+            return v
+        v = v.strip()
+        # Handle booleans
+        if v.lower() == 'true':
+            return True
+        if v.lower() == 'false': 
+            return False
+        # Handle null/None
+        if v.lower() in ('null', 'none', ''):
+            return None
+        # Handle numbers
+        try:
+            if '.' in v:
+                return float(v)
+            return int(v)
+        except ValueError:
+            pass
+        # Keep as string if no other type matches
+        return v
+
+    inputs = {k: convert_value(v) for k,v in inputs.items()}
+    config = {k: convert_value(v) for k,v in config.items()}
 
     program = programDirectory.getProgram(program_name)
-    programOutput = programExecutor.executeProgram(program_name, ProgramInput(startTimestamp=0, inputs=inputs), preferredVisualReturnType="html", config=program.config)
+    programOutput = programExecutor.executeProgram(program_name, ProgramInput(startTimestamp=0, inputs=inputs), preferredVisualReturnType="html", config=config)
     viz = programOutput.viz()
-    print("Aboiutt to return viz", viz)
     return viz
 
 @app.route('/view/<program_name>')
 def view_program(program_name):
     program = programDirectory.getProgram(program_name)
-
     templateCode = """
     <style>{{css}}</style>
 
@@ -142,11 +170,11 @@ def view_program(program_name):
         </div>
     </div>
 
-    <div style="background-color: rgb(229,228,228); border-radius: 8px; padding: 12px 20px; margin: 20px 0;">
+    <div style="background-color: rgb(229,228,228); border-radius: 8px; padding: 8px 16px; margin: 20px 0;">
     {% if not program.inputs %}
         <em>No inputs</em>
     {% else %}
-    <h2 style="margin-top: 0;">Test Inputs</h2>
+    <h2 style="margin: 8px 0;">Test Inputs</h2>
 
     <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
         <thead>
@@ -179,6 +207,39 @@ def view_program(program_name):
     {% endif %}
     </div>
 
+    <div style="background-color: rgb(229,228,228); border-radius: 8px; padding: 8px 16px; margin: 20px 0;">
+    {% if program.config and program.config|length > 0 %}
+    <h2 style="margin: 8px 0;">Configuration</h2>
+    <table style="width: 100%; border-collapse: collapse; margin: 12px 0;">
+        <thead>
+            <tr style="background-color: rgb(210,210,210);">
+                <th style="padding: 8px; text-align: left; border-bottom: 2px solid #ddd;">Setting</th>
+                <th style="padding: 8px; text-align: left; border-bottom: 2px solid #ddd;">Default Value</th>
+                <th style="padding: 8px; text-align: left; border-bottom: 2px solid #ddd;">Value</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for setting, value in program.config.items() %}
+            <tr style="background-color: rgb(240,240,240);">
+                <td style="padding: 8px; border-bottom: 1px solid #ddd;">{{setting}}</td>
+                <td style="padding: 8px; border-bottom: 1px solid #ddd;">{{value}}</td>
+                <td style="padding: 8px; border-bottom: 1px solid #ddd;">
+                    <input type="text"
+                           id="config_{{setting}}"
+                           name="{{setting}}"
+                           value="{{value}}"
+                           style="width: 100%; padding: 4px; border: 1px solid #ddd; border-radius: 4px;">
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <em>No configuration</em>
+    {% endif %}
+    </div>
+
+    
     <div style="margin: 20px 0;">
     <div style="display: inline-block; margin-right: 10px;">
         <button id="codeButton" style="padding: 8px 16px; border-radius: 4px; border: none; background-color: #007bff; color: white; cursor: pointer;">Code</button>
@@ -209,8 +270,6 @@ def view_program(program_name):
         const documentView = document.getElementById("documentView");
         const documentContent = document.getElementById("documentContent");
 
-        let documentLoaded = false;
-
         codeButton.addEventListener("click", function() {
         codeButton.style.backgroundColor = "#007bff";
         codeButton.style.color = "white";
@@ -228,39 +287,38 @@ def view_program(program_name):
         documentView.style.display = "block";
         codeView.style.display = "none";
 
-        if (!documentLoaded) {
-            fetch("/rendered/{{program.name}}", {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    inputs: getInputValues()
-                })
+        fetch("/rendered/{{program.name}}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                inputs: getInputValues(),
+                config: getConfigValues()
             })
-            .then(response => {
-                if (!response.ok) throw new Error("Failed to load document");
-                return response.text();
-            })
-            .then(html => {
-                // Clear previous content (if any)
-                documentContent.innerHTML = "";
+        })
+        .then(response => {
+            if (!response.ok) throw new Error("Failed to load document");
+            return response.text();
+        })
+        .then(html => {
+            // Clear previous content (if any)
+            documentContent.innerHTML = "";
 
-                // Create and insert iframe
-                const iframe = document.createElement('iframe');
-                iframe.style.width = "100%";
-                iframe.style.height = "500px";
-                iframe.style.border = "none";
-                iframe.srcdoc = html;
+            // Create and insert iframe
+            const iframe = document.createElement('iframe');
+            iframe.style.width = "100%";
+            iframe.style.height = "500px";
+            iframe.style.border = "none";
+            iframe.srcdoc = html;
 
-                documentContent.appendChild(iframe);
-                documentLoaded = true;
-            })
-            .catch(error => {
-                documentContent.innerHTML = "<p style='color: red;'>Error loading document.</p>";
-                console.error(error);
-            });
-        }
+            documentContent.appendChild(iframe);
+            documentLoaded = true;
+        })
+        .catch(error => {
+            documentContent.innerHTML = "<p style='color: red;'>Error loading document.</p>";
+            console.error(error);
+        });
         });
     });
     function getInputValues() {
@@ -271,8 +329,16 @@ def view_program(program_name):
             values[paramName] = input.value;
         });
         return values;
-    }
-
+    };
+    function getConfigValues() {
+        const configs = document.querySelectorAll("input[id^='config_']");
+        const values = {};
+        configs.forEach(config => {
+            const configName = config.name;
+            values[configName] = config.value;
+        });
+        return values;
+    };
     </script>
     """
 

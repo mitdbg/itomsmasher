@@ -1,5 +1,7 @@
 #@ dsl: basic
 #@ description: A basic test of the Jinja DSL processor
+#@ config:
+#@   highlightIncludes: false
 
 # Top-level Header
 

@@ -90,5 +90,5 @@ class ProgramExecutor:
                     pass
 
         dslProcessor = self.availableDSLProcessors[program.dslId]
-        return dslProcessor.runProgram(program, input, preferredVisualReturnType)
+        return dslProcessor.runProgram(program, input, preferredVisualReturnType, config)
 

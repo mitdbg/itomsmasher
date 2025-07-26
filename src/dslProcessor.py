@@ -18,11 +18,11 @@ class DSLProcessor:
     def process(self, code: str, input: dict, outputNames: List[str], preferredVisualReturnType: str) -> ProgramOutput:
         raise NotImplementedError("DSLProcessor is an abstract class and cannot be instantiated directly")
 
-    def runProgram(self, program: NamedProgram, input: ProgramInput, preferredVisualReturnType) -> ProgramOutput:
+    def runProgram(self, program: NamedProgram, input: ProgramInput, preferredVisualReturnType, config:dict) -> ProgramOutput:
         # Create pair of input and empty output
         latestCode = program.codeVersions[-1]
         latestExecutionHistory = program.executions[-1]
-        programOutput = self.process(latestCode, input["inputs"], program.outputs, preferredVisualReturnType, program.config)
+        programOutput = self.process(latestCode, input["inputs"], program.outputs, preferredVisualReturnType, config)
         latestExecutionHistory.append((input, programOutput))
         return programOutput
 
@@ -120,7 +120,7 @@ class PreprocessedDSL(DSLProcessor):
                                                     {"startTimestamp": time.time(), 
                                                     "inputs": moduleInputs}, 
                                                     targetReturnType,
-                                                    program.config)
+                                                    config=config)
             if not programOutput.succeeded():
                 return dict(error="ERROR: program " + programName + " failed with message: " + programOutput.errorMessage(),
                             succeeded=False)
@@ -134,6 +134,25 @@ class PreprocessedDSL(DSLProcessor):
                     visualStringRepr = f'<img src="data:image/png;base64,{base64.b64encode(programOutput.viz()).decode("utf-8")}" />'
                 else:
                     raise ValueError(f"ERROR: included program {programName} cannot return type: {targetReturnType}")
+
+                
+                if config.get("highlightIncludes", False):
+                    # Create a tab with program name and any relevant metadata
+                    # Build tab text with input parameters
+                    inputParams = [f"{k}={v}" for k, v in moduleInputs.items()]
+                    inputParamsStr = ", ".join(inputParams)
+
+                    dataOutputs = [f"{k}={v}" for k, v in programOutput.data().items()]
+                    dataOutputsStr = ", ".join(dataOutputs)
+
+                    tabText = f'{programName} ({inputParamsStr}) --> ({dataOutputsStr})'
+
+                    # Make the program name clickable by wrapping it in an anchor tag
+                    # Add target="_top" to make the link open in the top-level browser window
+                    tabText = f'<a href="/view/{programName}" target="_top" style="color: white; text-decoration: none;">{tabText}</a>'
+
+                    tabContent = f'<div style="display: inline-block; background-color: red; color: white; padding: 2px 8px; border-radius: 4px 4px 0 0; margin-left: 10px; font-size: 0.8em; font-family: sans-serif;">{tabText}</div>'
+                    visualStringRepr = f'{tabContent}<div style="border: 3px solid red; padding: 10px; margin: 0 0 10px 0;">{visualStringRepr}</div>'
 
                 return dict(data=programOutput.data(),
                             visual=visualStringRepr,
@@ -174,7 +193,6 @@ class BasicDSLProcessor(PreprocessedDSL):
     def postprocess(self, processedCode: str, processedOutputState: dict, input: dict, outputNames: List[str], preferredVisualReturnType: str, config:dict) -> ProgramOutput:
         css = """<style>
             body {
-                background-color: rgb(246,190,23);
                 margin: 0;
             }
             h1, p {
