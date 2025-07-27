@@ -1,6 +1,6 @@
 from dslProcessor import PreprocessedDSL
-from programs import ProgramOutput, ProgramDirectory
-from typing import List, Any
+from programs import ProgramOutput, ProgramDirectory, TracerNode
+from typing import List, Any, Optional
 import os
 import time
 import base64
@@ -18,7 +18,7 @@ class AIImageProcessor(PreprocessedDSL):
     def getIncludableTypes(self) -> List[str]:
         return ["html"]
 
-    def postprocess(self, processedCode: str, processedOutputState: dict, input: dict, outputNames: List[str], preferredVisualReturnType: str, config:dict) -> ProgramOutput:
+    def postprocess(self, processedCode: str, processedOutputState: dict, input: dict, outputNames: List[str], preferredVisualReturnType: str, config:dict,tracer: Optional[TracerNode] = None) -> ProgramOutput:
         size = input["size"] if "size" in input else "large"
         if size == "small":
             horizontalSize = 256
@@ -77,6 +77,7 @@ class AIImageProcessor(PreprocessedDSL):
         if ("_forceformat" in input):
             preferredVisualReturnType = input["_forceformat"]
 
+        print(f"preferredVisualReturnType: {preferredVisualReturnType}")
         if preferredVisualReturnType == "png":
             return ProgramOutput(time.time(), "png", png_bytes, outputData)
         elif preferredVisualReturnType == "html":               # Return an HTML image tag that b64 encodes the image directly

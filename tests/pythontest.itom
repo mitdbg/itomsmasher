@@ -1,6 +1,7 @@
 #@ dsl: python
-#@ config: mainfunc='magic'
-#@ output: a
+#@ config: 
+#@    mainfunc: 'magic'
+#@ outputs: a
 
 def magic():
     print("apple")

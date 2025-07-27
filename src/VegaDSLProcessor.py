@@ -1,6 +1,6 @@
 from dslProcessor import BasicDSLProcessor, PreprocessedDSL
-from programs import ProgramOutput, ProgramDirectory
-from typing import List, Any
+from programs import ProgramOutput, ProgramDirectory, TracerNode
+from typing import List, Any, Optional
 import time
 import base64
 import altair as alt
@@ -19,7 +19,7 @@ class VegaDSLProcessor(PreprocessedDSL):
     def getIncludableTypes(self) -> List[str]:
         return ["html", "png"]
     
-    def postprocess(self, processedCode: str, processedOutputState: dict, input: dict, outputNames: List[str], preferredVisualReturnType: str, config: dict) -> ProgramOutput:
+    def postprocess(self, processedCode: str, processedOutputState: dict, input: dict, outputNames: List[str], preferredVisualReturnType: str, config: dict,tracer: Optional[TracerNode] = None) -> ProgramOutput:
         code = processedCode
         chart_json = json.loads(str(code))
         

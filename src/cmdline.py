@@ -4,9 +4,48 @@ import os
 import argparse
 import json
 import shutil
-from programs import ProgramInput, ProgramOutput, ProgramDirectory, NamedProgram
+from programs import ProgramInput, ProgramOutput, ProgramDirectory, NamedProgram, TracerNode
 from programExecutor import ProgramExecutor
 from typing import Optional, List, Tuple
+
+def runProgram(programDirectory: ProgramDirectory, programExecutor: ProgramExecutor, programName: str, preferredVisualReturnType: str, config: dict):
+    
+    namedProgram = programDirectory.getProgram(programName)
+    print(f"Executing program {namedProgram.name}")
+    print(f"Outputting to {args.output}")
+    print(f"Format: {args.format}")
+
+    #print(f"Config: {namedProgram.config}")
+    input = ProgramInput(startTimestamp=0, inputs={})
+    root = TracerNode(None)
+    programOutput = programExecutor.executeProgram(namedProgram.name, input, preferredVisualReturnType=args.format, config=namedProgram.config,parentTracer=root)
+
+    # Write the visual png to a file
+    if args.format == "png":
+        with open(args.output, "wb") as f:
+            f.write(programOutput.viz())
+    elif args.format == "html":
+        with open(args.output, "w") as f:
+            f.write(programOutput.viz())
+    elif args.format == "md":
+        with open(args.output, "w") as f:
+            f.write(programOutput.viz())
+    elif args.format == "mp4":
+        with open(args.output, "wb") as f:
+            f.write(programOutput.viz())
+    else:
+        raise ValueError(f"Invalid format: {args.format}")
+    
+    # Print the trace
+    #print(root.to_json())
+    
+    return(root)
+
+def status(programDirectory: ProgramDirectory):
+    programs = programDirectory.getPrograms()
+    print(f"Number of available programs: {len(programs)}")
+    for i, program in enumerate(programs):
+        print(f"{i+1}. {program.name}: {program.description}")
 
 if __name__ == "__main__":
     # process the command line, with help etc.
@@ -35,38 +74,10 @@ if __name__ == "__main__":
         if not args.output or not args.format:
             print("Error: -output and -format are required when running a program")
             sys.exit(1)
-
         programName = args.run
-        namedProgram = programDirectory.getProgram(programName)
-        print(f"Executing program {namedProgram.name}")
-        print(f"Outputting to {args.output}")
-        print(f"Format: {args.format}")
-
-        #print(f"Config: {namedProgram.config}")
-        programOutput = programExecutor.executeProgram(namedProgram.name, ProgramInput(startTimestamp=0, inputs={}), preferredVisualReturnType=args.format, config=namedProgram.config)
-
-        # Write the visual png to a file
-        if args.format == "png":
-            with open(args.output, "wb") as f:
-                f.write(programOutput.viz())
-        elif args.format == "html":
-            with open(args.output, "w") as f:
-                f.write(programOutput.viz())
-        elif args.format == "md":
-            with open(args.output, "w") as f:
-                f.write(programOutput.viz())
-        elif args.format == "mp4":
-            with open(args.output, "wb") as f:
-                f.write(programOutput.viz())
-        else:
-            raise ValueError(f"Invalid format: {args.format}")
+        runProgram(programDirectory, programExecutor, programName, args.format, args.output)
     elif args.status:
-        # Prefix with counter
-        programs = programDirectory.getPrograms()
-        print(f"Number of available programs: {len(programs)}")
-
-        for i, program in enumerate(programDirectory.getPrograms()):
-            print(f"{i+1}. {program.name}: {program.description}")
+        status(programDirectory)
     elif args.add:
         recursive = False
         if args.recursive:

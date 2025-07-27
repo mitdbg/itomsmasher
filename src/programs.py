@@ -4,6 +4,7 @@ import os
 from datetime import datetime
 from typing import Optional, List, Tuple, TypedDict, Any
 
+
 # ProgramInput is a class that represents the input of a program
 class ProgramInput(TypedDict):
     startTimestamp: int
@@ -95,6 +96,7 @@ class NamedProgram:
         if not isinstance(header_yaml, dict):
             raise ValueError("Header YAML must be a dictionary/mapping")
         
+        print(header_yaml)
         # Extract required fields
         description = header_yaml.get("description", "")
         dslId = header_yaml.get("dsl")
@@ -278,6 +280,7 @@ class ProgramDirectory:
 
     def addNewProgram(self, programName: str, metadataComment: str, rawCode: str, refresh: bool = False) -> None:
         if programName not in self.programs:
+            print(f"Adding new program {programName}")
             program = NamedProgram.from_code(programName, rawCode)
             self.programs[program.name] = program
             self.save()
@@ -287,7 +290,11 @@ class ProgramDirectory:
             else:
                 # Copy the new program source file (code.itom)to the program directory and refresh
                 program = self.programs[programName]
+                needToUpdate = False
                 if program.getLatestRawCode() != rawCode:
+                    needToUpdate = True
+
+                if needToUpdate:
                     programDir = os.path.join(self.localProgramDir, programName)
                     if os.path.exists(programDir):
                         # Copy the new program source file (code.itom) to the program directory
@@ -313,5 +320,31 @@ class ProgramDirectory:
     def getProgramExecutor(self) -> "ProgramExecutor":
         return self.programExecutor
 
+class TracerNode:
+    def __init__(self, program: 'NamedProgram', output: Optional['ProgramOutput'] = None, input: Optional['ProgramInput'] = None):
+        self.program = program
+        self.output = output
+        self.input = input
+        self.starttime = datetime.now()
+        self.endtime = None
+        self.children = []
+        
+    def start(self, input: Optional['ProgramInput'] = None):
+        self.starttime = datetime.now()
+        if input is not None:
+            self.input = input
 
+    def end(self, output: Optional['ProgramOutput'] = None):
+        self.endtime = datetime.now()
+        self.duration = self.endtime - self.starttime
+        if output is not None:
+            self.output = output
 
+    def addChild(self, child: 'TracerNode') -> 'TracerNode':
+        self.children.append(child)
+        return self
+
+    def getChildren(self) -> List['TracerNode']:
+        return self.children
+    
+    

@@ -1,6 +1,6 @@
 from dslProcessor import DSLProcessor
-from programs import ProgramOutput, ProgramDirectory
-from typing import List, Any
+from programs import ProgramOutput, ProgramDirectory, TracerNode
+from typing import List, Any, Optional
 import os
 import time
 from playwright.sync_api import sync_playwright
@@ -15,7 +15,7 @@ class PythonDSLProcessor(DSLProcessor):
     def getVisualReturnTypes(self) -> List[str]:
         return ["html","png","md"]
 
-    def process(self, code: str, input: dict, outputNames: List[str], preferredVisualReturnType: str,config:dict) -> ProgramOutput:
+    def process(self, code: str, input: dict, outputNames: List[str], preferredVisualReturnType: str,config:dict,tracer: Optional[TracerNode] = None) -> ProgramOutput:
         main_function_name = config['mainfunc']
         scope = {}
         exec(code)
@@ -49,6 +49,7 @@ class PythonDSLProcessor(DSLProcessor):
         outputData = {}
         table = "<TABLE><TR><TH>Key</TH><TH>Value</TH></TR>\n"
         markdown_table = "| Key | Value |\n| --- | --- |\n"
+        #print(outputNames)
         for key, value in result.items():
             # if the key is in outputNames, add it to the outputData
             if key in outputNames:
@@ -57,6 +58,7 @@ class PythonDSLProcessor(DSLProcessor):
                 markdown_table += f"| {key} | {value} |\n"
         table += "</TABLE>"
 
+        #print(result)
         if preferredVisualReturnType == "html":
             # Return an HTML image tag that b64 encodes the image directly
             return ProgramOutput(time.time(), "html", f"{table}", outputData)

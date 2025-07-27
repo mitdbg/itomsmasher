@@ -1,4 +1,4 @@
-from programs import ProgramInput, ProgramOutput, ProgramDirectory, NamedProgram
+from programs import ProgramInput, ProgramOutput, ProgramDirectory, NamedProgram, TracerNode
 from dslProcessor import DSLProcessor, BasicDSLProcessor
 from aiImageDslProcessor import AIImageProcessor
 from spreadsheetDslProcessor import SpreadsheetDSLProcessor
@@ -12,6 +12,7 @@ from typing import Optional
 import requests
 import json
 import os
+
 
 # ProgramExecutor is a class that executes a program of any kind
 class ProgramExecutor:
@@ -34,8 +35,14 @@ class ProgramExecutor:
         dslProcessor = self.availableDSLProcessors[program.dslId]
         return dslProcessor.getVisualReturnTypes()
 
-    def executeProgram(self, programName: str, input: ProgramInput, preferredVisualReturnType: Optional[str] = None, inferInputs: bool = False, callingProgramContext: Optional[str] = None,config: Optional[dict] = None) -> ProgramOutput:
+    def executeProgram(self, programName: str, input: ProgramInput, preferredVisualReturnType: Optional[str] = None, inferInputs: bool = False, callingProgramContext: Optional[str] = None,config: Optional[dict] = None,parentTracer: Optional[TracerNode] = None) -> ProgramOutput:
+        print("executing program", programName)
         program = self.programDirectory.getProgram(programName)
+        childTracer = None
+        if parentTracer is not None:
+            childTracer = TracerNode(program)
+            parentTracer.addChild(childTracer)
+            childTracer.start(input)
         if program.dslId not in self.availableDSLProcessors:
             raise ValueError(f"DSL processor {program.dslId} not found")
 
@@ -90,5 +97,8 @@ class ProgramExecutor:
                     pass
 
         dslProcessor = self.availableDSLProcessors[program.dslId]
-        return dslProcessor.runProgram(program, input, preferredVisualReturnType, config)
+        output = dslProcessor.runProgram(program, input, preferredVisualReturnType, config,childTracer)
+        if childTracer is not None:
+            childTracer.end(output)
+        return output
 

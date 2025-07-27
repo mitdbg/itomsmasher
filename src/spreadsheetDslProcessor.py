@@ -1,6 +1,6 @@
 from dslProcessor import PreprocessedDSL
-from programs import ProgramOutput, ProgramDirectory
-from typing import List, Dict
+from programs import ProgramOutput, ProgramDirectory, TracerNode
+from typing import List, Dict, Optional
 import time
 import re
 from playwright.sync_api import sync_playwright
@@ -16,7 +16,7 @@ class SpreadsheetDSLProcessor(PreprocessedDSL):
     def getIncludableTypes(self) -> List[str]:
         return ["html"]
 
-    def postprocess(self, processedCode: str, processedOutputState: dict, input: dict, outputNames: List[str], preferredVisualReturnType: str, config:dict) -> ProgramOutput:
+    def postprocess(self, processedCode: str, processedOutputState: dict, input: dict, outputNames: List[str], preferredVisualReturnType: str, config:dict,tracer: Optional[TracerNode] = None) -> ProgramOutput:
         if preferredVisualReturnType not in self.getVisualReturnTypes():
             raise ValueError(f"Invalid visual return type: {preferredVisualReturnType}")
         

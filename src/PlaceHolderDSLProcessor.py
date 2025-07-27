@@ -5,8 +5,8 @@ import os
 from pydub import AudioSegment
 import uuid
 from dslProcessor import DSLProcessor, BasicDSLProcessor
-from programs import ProgramOutput, ProgramDirectory, ProgramInput
-from typing import List, Any
+from programs import ProgramOutput, ProgramDirectory, ProgramInput, TracerNode
+from typing import List, Any, Optional
 import os
 import time
 import shutil
@@ -28,7 +28,7 @@ class PlaceHolderDSLProcessor(DSLProcessor):
             installed.append(f"{i.key}")
         return installed
     
-    def process(self, code: str, input: dict, outputNames: List[str], preferredVisualReturnType: str,config:dict) -> ProgramOutput:
+    def process(self, code: str, input: dict, outputNames: List[str], preferredVisualReturnType: str,config:dict,tracer: Optional[TracerNode] = None) -> ProgramOutput:
         if preferredVisualReturnType not in self.getVisualReturnTypes():
             raise ValueError(f"Invalid visual return type: {preferredVisualReturnType}")
         
@@ -65,12 +65,12 @@ class PlaceHolderDSLProcessor(DSLProcessor):
             try:
                 program = self.programDirectory.getProgram(f"itom_{itomhash}")
                 # Load and refresh the program directory
-                programExecutor = self.programDirectory.getProgramExecutor()
-                programOutput = programExecutor.executeProgram(program.name, ProgramInput(startTimestamp=0, inputs=innerInput), preferredVisualReturnType=preferredVisualReturnType, config={})
+                programExecutor = self.programDirectory.getProgramExecutor() 
+                programOutput = programExecutor.executeProgram(program.name, ProgramInput(startTimestamp=0, inputs=innerInput), preferredVisualReturnType=preferredVisualReturnType, config=program.config,parentTracer=tracer)
                 return programOutput
             except Exception as e:
                 #print(e)
-                print("Program doesn't exist, attempting to create it ", e)
+                print("Program doesn't exist, attempting to create it ")
         else:
             print("Force refreshing generated itom")
 
@@ -110,7 +110,21 @@ Make a plan for the program and then write the rest of the program to complete t
         if (len(innerInput) > 0):
             docstring += "\tArguments:\n"
             for key in innerInput.keys():
-                args.append(f"{key}=None")
+                value = innerInput[key]
+                if isinstance(value, str):
+                    val = f'"{value}"'
+                # if value is list, check the elements and wrap them in quotes if they are strings
+                elif isinstance(value, list):
+                    vals = []
+                    for item in value:
+                        if isinstance(item, str):
+                            vals.append(f'"{item}"')
+                        else:
+                            vals.append(str(item))
+                    val = f"[{', '.join(vals)}]"
+                else:
+                    val = str(value)
+                args.append(f"{key}={val}")
                 docstring += f"\t\t{key}, example: {innerInput[key]}\n"
         signature += ", ".join(args)
         signature += "):"
@@ -174,13 +188,15 @@ Reason about the error and return the corrected code.
             response_text = response_text.split("```python")[1].split("```")[0]
             #print(response_text)
 
-        itom = f"""#@ dsl: python
-#@ config: mainfunc='{function_name}'
+        itom = """#@ dsl: python
+#@ outputs:
 """
-
         for key in outputNames:
-            itom += f"#@ output: {key}\n"
+            itom += f"#@    {key}\n"
 
+        itom += f"""#@ config:
+#@    mainfunc: '{function_name}'
+"""
         itom += response_text
 
         # save the file to .genitomcache/itom_<hash>.itom
@@ -193,7 +209,7 @@ Reason about the error and return the corrected code.
             program = self.programDirectory.getProgram(f"itom_{itomhash}")
             # Load and refresh the program directory
             programExecutor = self.programDirectory.getProgramExecutor()
-            programOutput = programExecutor.executeProgram(program.name, ProgramInput(startTimestamp=0, inputs=innerInput), preferredVisualReturnType=preferredVisualReturnType, config={})
+            programOutput = programExecutor.executeProgram(program.name, ProgramInput(startTimestamp=0, inputs=innerInput), preferredVisualReturnType=preferredVisualReturnType, config=program.config,parentTracer=tracer)
             return programOutput
         except Exception as e:
             print(e)

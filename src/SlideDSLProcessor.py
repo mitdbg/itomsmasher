@@ -5,8 +5,8 @@ import os
 from pydub import AudioSegment
 import uuid
 from dslProcessor import DSLProcessor, BasicDSLProcessor
-from programs import ProgramOutput, ProgramDirectory
-from typing import List, Any
+from programs import ProgramOutput, ProgramDirectory, TracerNode
+from typing import List, Any, Optional
 import os
 import time
 import shutil
@@ -22,8 +22,8 @@ class SlideDSLProcessor(BasicDSLProcessor):
     def getIncludableTypes(self) -> List[str]:
         return ["html", "png", "md"]
     
-    def postprocess(self, processedCode: str, processedOutputState: dict, input: dict, outputNames: List[str], preferredVisualReturnType: str, config:dict) -> ProgramOutput:
-        result = super().postprocess(processedCode, processedOutputState, input, outputNames, "md",config)
+    def postprocess(self, processedCode: str, processedOutputState: dict, input: dict, outputNames: List[str], preferredVisualReturnType: str, config:dict,tracer: Optional[TracerNode] = None) -> ProgramOutput:
+        result = super().postprocess(processedCode, processedOutputState, input, outputNames, "md",config,tracer)
         if not result.succeeded():
             return dict(error="ERROR: program failed with message: " + result.errorMessage(),
                         succeeded=False)

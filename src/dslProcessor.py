@@ -1,4 +1,4 @@
-from programs import ProgramInput, ProgramOutput, ProgramDirectory, NamedProgram
+from programs import ProgramInput, ProgramOutput, ProgramDirectory, NamedProgram, TracerNode
 import time, os, base64
 import re
 from typing import Optional, List, Tuple, Any
@@ -6,6 +6,7 @@ import markdown as mdlib
 import copy
 from bs4 import BeautifulSoup
 from playwright.sync_api import sync_playwright
+
 
 # DSLProcessor is a generic superclass for all DSL processors
 class DSLProcessor:
@@ -15,14 +16,18 @@ class DSLProcessor:
     def getVisualReturnTypes(self) -> List[str]:
         raise NotImplementedError("DSLProcessor is an abstract class and cannot be instantiated directly")
     
-    def process(self, code: str, input: dict, outputNames: List[str], preferredVisualReturnType: str, config:dict) -> ProgramOutput:
+    def process(self, code: str, input: dict, outputNames: List[str], preferredVisualReturnType: str, config:dict,tracer: Optional[TracerNode] = None) -> ProgramOutput:
         raise NotImplementedError("DSLProcessor is an abstract class and cannot be instantiated directly")
 
-    def runProgram(self, program: NamedProgram, input: ProgramInput, preferredVisualReturnType, config:dict) -> ProgramOutput:
+    def runProgram(self, program: NamedProgram, input: ProgramInput, preferredVisualReturnType, config:dict,tracer: Optional[TracerNode] = None) -> ProgramOutput:
         # Create pair of input and empty output
+        if tracer is not None:
+            tracer.start(input)
         latestCode = program.codeVersions[-1]
         latestExecutionHistory = program.executions[-1]
-        programOutput = self.process(latestCode, input["inputs"], program.outputs, preferredVisualReturnType, config)
+        programOutput = self.process(latestCode, input["inputs"], program.outputs, preferredVisualReturnType, config,tracer)
+        if tracer is not None:
+            tracer.end(programOutput)
         latestExecutionHistory.append((input, programOutput))
         return programOutput
 
@@ -34,17 +39,20 @@ class PreprocessedDSL(DSLProcessor):
     def getIncludableTypes(self) -> List[str]:
         raise NotImplementedError("PreprocessedDSL is an abstract class and cannot be instantiated directly")
 
-    def process(self, code: str, input: dict, outputNames: List[str], preferredVisualReturnType: str, config:dict) -> ProgramOutput:
-        processedCode, processedOutput = self.preprocess(code, input, outputNames, preferredVisualReturnType, config)
-        return self.postprocess(processedCode, processedOutput, input, outputNames, preferredVisualReturnType, config)
+    def process(self, code: str, input: dict, outputNames: List[str], preferredVisualReturnType: str, config:dict,tracer: Optional[TracerNode] = None) -> ProgramOutput:
+        self.tracer = tracer
+        processedCode, processedOutput = self.preprocess(code, input, outputNames, preferredVisualReturnType, config,tracer)
+        output = self.postprocess(processedCode, processedOutput, input, outputNames, preferredVisualReturnType, config,tracer)
+        return output
 
-    def postprocess(self, processedCode: str, processedOutputState: dict, input: dict, outputNames: List[str], preferredVisualReturnType: str, config:dict) -> ProgramOutput:
+    def postprocess(self, processedCode: str, processedOutputState: dict, input: dict, outputNames: List[str], preferredVisualReturnType: str, config:dict,tracer: Optional[TracerNode] = None) -> ProgramOutput:
         raise NotImplementedError("PreprocessedDSL is an abstract class and cannot be instantiated directly")
 
-    def preprocess(self, code: str, input: dict, outputNames: List[str], preferredVisualReturnType: str, config:dict) -> Tuple[str, dict]:
+    def preprocess(self, code: str, input: dict, outputNames: List[str], preferredVisualReturnType: str, config:dict,tracer: Optional[TracerNode] = None) -> Tuple[str, dict]:
         # Use Jinja to process the document
         from jinja2 import Environment, BaseLoader, pass_context
 
+        self.tracer = tracer
         outputState = {}
         inputState = copy.deepcopy(input)
         env = Environment(loader=BaseLoader)
@@ -78,6 +86,7 @@ class PreprocessedDSL(DSLProcessor):
         # The include function is used to execute a module and obtain its returned results
         @pass_context
         def includeFn(ctx, *args, **kwargs) -> dict:
+
             if len(args) < 1:
                 return dict(error="ERROR: includeFn must indicate programName",
                             succeeded=False)
@@ -116,11 +125,13 @@ class PreprocessedDSL(DSLProcessor):
             
 
             targetReturnType = includedModuleReturnTypes[0]
+
             programOutput = executor.executeProgram(programName, 
                                                     {"startTimestamp": time.time(), 
                                                     "inputs": moduleInputs}, 
                                                     targetReturnType,
-                                                    config=config)
+                                                    config=config,
+                                                    parentTracer=self.tracer)
             if not programOutput.succeeded():
                 return dict(error="ERROR: program " + programName + " failed with message: " + programOutput.errorMessage(),
                             succeeded=False)
@@ -168,6 +179,7 @@ class PreprocessedDSL(DSLProcessor):
 
         # Render the template
         template = env.from_string(code)
+        
         outputText = template.render()
         return outputText, outputState
 
@@ -189,7 +201,7 @@ class BasicDSLProcessor(PreprocessedDSL):
     # 4. There is no interesting interactivity. All interactivity is at the interface level and anything permanent is a code change.
     #    (That is to say, there is no database or other form of state)
     # 5. Every module should be able to run to partial completion. An error does not bring it to a halt, but just makes the output worse
-    def postprocess(self, processedCode: str, processedOutputState: dict, input: dict, outputNames: List[str], preferredVisualReturnType: str, config:dict) -> ProgramOutput:
+    def postprocess(self, processedCode: str, processedOutputState: dict, input: dict, outputNames: List[str], preferredVisualReturnType: str, config:dict,tracer: Optional[TracerNode] = None) -> ProgramOutput:
         css = """<style>
             body {
                 margin: 0;

@@ -6,8 +6,8 @@ from pydub import AudioSegment
 import uuid
 from dslProcessor import DSLProcessor, BasicDSLProcessor
 from SlideDSLProcessor import SlideDSLProcessor
-from programs import ProgramOutput, ProgramDirectory
-from typing import List, Any
+from programs import ProgramOutput, ProgramDirectory, TracerNode
+from typing import List, Any, Optional
 import os
 import time
 import shutil
@@ -23,7 +23,7 @@ class SlideVideoDSLProcessor(SlideDSLProcessor):
     def getIncludableTypes(self) -> List[str]:
         return ["html", "png", "md"]
 
-    def postprocess(self, processedCode: str, processedOutputState: dict, input: dict, outputNames: List[str], preferredVisualReturnType: str, config: dict) -> ProgramOutput:
+    def postprocess(self, processedCode: str, processedOutputState: dict, input: dict, outputNames: List[str], preferredVisualReturnType: str, config: dict,tracer: Optional[TracerNode] = None) -> ProgramOutput:
         if preferredVisualReturnType not in self.getVisualReturnTypes():
             raise ValueError(f"Invalid visual return type: {preferredVisualReturnType}")
 
