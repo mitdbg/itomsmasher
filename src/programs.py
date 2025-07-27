@@ -221,6 +221,54 @@ class NamedProgram:
         self.executions.append([])
         self.modified = datetime.now()
 
+
+class ItomHeader:
+    def __init__(self, description: str, dslId: str, inputs: dict, outputs: dict, config: dict):
+        self.description = ""
+        self.dslId = ""
+        self.inputs = {}
+        self.outputs = []
+        self.config = {}
+
+    def parse(self, header_lines: List[str]) -> "ItomHeader":
+        # Parse header as YAML
+        import yaml
+        import io
+        try:
+            header_yaml = yaml.safe_load(io.StringIO("\n".join(header_lines)))
+        except yaml.YAMLError as e:
+            raise ValueError(f"Invalid YAML in header: {str(e)}")
+
+        if not isinstance(header_yaml, dict):
+            raise ValueError("Header YAML must be a dictionary/mapping")
+        
+        
+        # Extract required fields
+        self.description = header_yaml.get("description", "")
+        self.dslId = header_yaml.get("dsl")
+        self.inputs = header_yaml.get("inputs", {})
+        self.outputs = header_yaml.get("outputs", [])
+        self.config = header_yaml.get("config", {})
+
+        return self
+
+    # convert to header string
+    def __str__(self):
+        # add a #@ prefix to each line
+        toRet = ""
+        if self.dslId != "":
+            toRet += "#@ dsl: " + self.dslId + "\n"
+        if self.description != "":
+            toRet += "#@ description: " + self.description + "\n"
+        if self.inputs != {}:
+            toRet += "#@ inputs: " + json.dumps(self.inputs) + "\n"
+        if self.outputs != []:
+            toRet += "#@ outputs: " + json.dumps(self.outputs) + "\n"
+        if self.config != {}:
+            toRet += "#@ config: " + json.dumps(self.config) + "\n"
+        return toRet
+
+
 # ProgramDirectory is a class that stores all the programs in the system
 class ProgramDirectory:
     def __init__(self, localProgramDir: str):
