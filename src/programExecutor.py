@@ -8,6 +8,7 @@ from PlaceHolderDSLProcessor import PlaceHolderDSLProcessor
 from SlideVideoDSLProcessor import SlideVideoDSLProcessor
 from SlideDSLProcessor import SlideDSLProcessor
 from PythonDSLProcessor import PythonDSLProcessor
+from LLMDSLProcessor import LLMDSLProcessor
 from typing import Optional
 import requests
 import json
@@ -27,7 +28,8 @@ class ProgramExecutor:
             "slidevideo": SlideVideoDSLProcessor(programDirectory),
             "slides": SlideDSLProcessor(programDirectory),
             "placeholder": PlaceHolderDSLProcessor(programDirectory),
-            "python": PythonDSLProcessor(programDirectory)
+            "python": PythonDSLProcessor(programDirectory),
+            "llm": LLMDSLProcessor(programDirectory)
         }
         self.programDirectory.setProgramExecutor(self)
 

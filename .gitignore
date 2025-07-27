@@ -8,6 +8,7 @@ node_modules/*
 .programs
 .speech_cache
 .genitomcache
+.llm_cache
 
 e2e
 tests-examples

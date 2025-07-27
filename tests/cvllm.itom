@@ -1,0 +1,47 @@
+#@ dsl: llm
+#@ outputs:
+#@  name: name of candidate
+#@  last_job: last job of candidate
+#@  schools: list of schools attended
+#@ inputs:
+#@  filename: "cv.pdf"
+
+From the file below, extract the following information and return as a json object:
+
+{
+{% for varb in __outputs %}
+  {{varb}}: < {{__outputs[varb]}} >,
+{% endfor %}
+}
+
+Jessica Hullman 
+3521 Mudd Hall, 2233 Tech Drive, Evanston, IL 60208 (720) 280-8636 jhullman@northwestern.eduLast updated: July 2025 
+— Current Appointment 
+2024– Ginni Rometty Professor of Computer Science 
+Northwestern University, Evanston IL. 
+2024– Faculty Fellow, Institute for Policy Research 
+Northwestern University, Evanston IL. 
+
+— Prior Positions 
+2021–2024 Ginni Rometty Associate Professor of Computer Science 
+Northwestern University, Evanston IL. 
+2022 Law & Society Fellow 
+Simons Institute, Berkeley, CA. 
+2022 Visiting Researcher 
+Microsoft Research, New York, NY. 
+2020–2021 Associate Professor of Computer Science 
+Northwestern University, Evanston IL. 
+2018–2020 Allen K. and Johnnie Cordell Breed Assistant Professor of Computer Science Assistant Professor of Journalism 
+Northwestern University, Evanston IL. 
+2015–2018 Assistant Professor of Information Science Adjunct Assistant Professor of Computer Science & Engineering 
+University of Washington, Seattle, WA. 
+2014 Postdoctoral Fellow 
+Computer Science, University of California, Berkeley, CA.Mentor: Maneesh Agrawala 
+
+— Education 
+2014 Ph.D. in Information Science 
+Committee: E. Adar (Chair), T. Finholt, P. Resnick, P. Shah. University of Michigan School of Information, Ann Arbor, MI. 
+2008 Master of Science in Information 
+Specialization in Information Analysis & Retrieval.University of Michigan School of Information, Ann Arbor, MI. 
+2003 Bachelor of Arts 
+Comparative Studies in Religion. Honors with distinction (GPA: 3.73)Ohio State University, Columbus, OH. 

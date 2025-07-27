@@ -112,6 +112,7 @@ class PreprocessedDSL(DSLProcessor):
                     # not provided
                     print(f"WARNING: input {inputName} in include but not in {programName} itom")
                     moduleInputs[inputName] = providedInputs[inputName]
+                    
 
             from programExecutor import ProgramExecutor
 
@@ -177,6 +178,8 @@ class PreprocessedDSL(DSLProcessor):
         for inputName, v in inputState.items():
             env.globals[inputName] = v
 
+        env.globals["__outputs"] = outputNames
+        
         # Render the template
         template = env.from_string(code)
         
