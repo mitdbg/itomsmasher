@@ -2,6 +2,6 @@
 #@ description: A tutorial itom all about bubble sort
 
 # Welcome to the world of Bubble Sort
-{{x = [5,3,8,4,2]}}
-{{x = include("bubbleRender",numbers=x)}}
-{{x}}
+{% set x = [5,3,8,4,2] %}
+{% set y = include("bubbleRender",numbers=x,foo=5,_forceformat="md") %}
+{{y.visual}}
