@@ -36,7 +36,7 @@ class ProgramExecutor:
         return dslProcessor.getVisualReturnTypes()
 
     def executeProgram(self, programName: str, input: ProgramInput, preferredVisualReturnType: Optional[str] = None, inferInputs: bool = False, callingProgramContext: Optional[str] = None,config: Optional[dict] = None,parentTracer: Optional[TracerNode] = None) -> ProgramOutput:
-        print("executing program", programName)
+        #print("executing program", programName)
         program = self.programDirectory.getProgram(programName)
         childTracer = None
         if parentTracer is not None:

@@ -8,7 +8,7 @@ from programs import ProgramInput, ProgramOutput, ProgramDirectory, NamedProgram
 from programExecutor import ProgramExecutor
 from typing import Optional, List, Tuple
 
-def runProgram(programDirectory: ProgramDirectory, programExecutor: ProgramExecutor, programName: str, preferredVisualReturnType: str, config: dict):
+def runProgram(programDirectory: ProgramDirectory, programExecutor: ProgramExecutor, programName: str, preferredVisualReturnType: str, config: dict, trace: bool):
     
     namedProgram = programDirectory.getProgram(programName)
     print(f"Executing program {namedProgram.name}")
@@ -17,7 +17,9 @@ def runProgram(programDirectory: ProgramDirectory, programExecutor: ProgramExecu
 
     #print(f"Config: {namedProgram.config}")
     input = ProgramInput(startTimestamp=0, inputs={})
-    root = TracerNode(None)
+    root = None
+    if args.trace:
+        root = TracerNode(None)
     programOutput = programExecutor.executeProgram(namedProgram.name, input, preferredVisualReturnType=args.format, config=namedProgram.config,parentTracer=root)
 
     # Write the visual png to a file
@@ -38,7 +40,10 @@ def runProgram(programDirectory: ProgramDirectory, programExecutor: ProgramExecu
     
     # Print the trace
     #print(root.to_json())
-    
+    if args.trace:
+        # pretty print the trace
+        pretty = json.dumps(root.to_json(), indent=4)
+        print(pretty)
     return(root)
 
 def status(programDirectory: ProgramDirectory):
@@ -59,6 +64,7 @@ if __name__ == "__main__":
     parser.add_argument("-format", type=str, help="Preferred output format (png, html, etc)", default="png")
     parser.add_argument("-output", type=str, help="Output file path for visual rendering")
     parser.add_argument("-r", "--recursive", action="store_true", help="Used with -add to try to recursively add all included itoms")
+    parser.add_argument("-t", "--trace", action="store_true", help="Used with -run to print the trace")
 
     args = parser.parse_args()
 
@@ -75,7 +81,7 @@ if __name__ == "__main__":
             print("Error: -output and -format are required when running a program")
             sys.exit(1)
         programName = args.run
-        runProgram(programDirectory, programExecutor, programName, args.format, args.output)
+        runProgram(programDirectory, programExecutor, programName, args.format, args.output, args.trace)
     elif args.status:
         status(programDirectory)
     elif args.add:

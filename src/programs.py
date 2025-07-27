@@ -325,10 +325,24 @@ class TracerNode:
         self.program = program
         self.output = output
         self.input = input
+        self.duration = None
         self.starttime = datetime.now()
         self.endtime = None
         self.children = []
-        
+    
+    def to_json(self) -> str:
+        if self.duration is None:
+            self.end(None)
+        return {
+            "program": self.program.name if self.program is not None else "ROOT",
+            "input": self.input if self.input is not None else None,
+            "starttime": self.starttime.isoformat(),
+            "output": {'data': self.output.data()} if self.output is not None else None,
+            "endtime": self.endtime.isoformat() if self.endtime is not None else None,
+            "duration": self.duration.total_seconds() if self.duration is not None else None,
+            "children": [child.to_json() for child in self.children]
+        }
+
     def start(self, input: Optional['ProgramInput'] = None):
         self.starttime = datetime.now()
         if input is not None:
@@ -337,6 +351,7 @@ class TracerNode:
     def end(self, output: Optional['ProgramOutput'] = None):
         self.endtime = datetime.now()
         self.duration = self.endtime - self.starttime
+        
         if output is not None:
             self.output = output
 
