@@ -19,6 +19,8 @@ if __name__ == "__main__":
     parser.add_argument("-status", action="store_true", help="List all programs")
     parser.add_argument("-format", type=str, help="Preferred output format (png, html, etc)", default="png")
     parser.add_argument("-output", type=str, help="Output file path for visual rendering")
+    parser.add_argument("-r", "--recursive", action="store_true", help="Used with -add to try to recursively add all included itoms")
+
     args = parser.parse_args()
 
     localProgramDir = ".programs"
@@ -66,6 +68,10 @@ if __name__ == "__main__":
         for i, program in enumerate(programDirectory.getPrograms()):
             print(f"{i+1}. {program.name}: {program.description}")
     elif args.add:
+        recursive = False
+        if args.recursive:
+            print("Recursively adding all included itoms")
+            recursive = True
         # ITerate through the multiple files provided at -add
         for programFile in args.add:
             programName = programFile.split("/")[-1].split(".")[0]

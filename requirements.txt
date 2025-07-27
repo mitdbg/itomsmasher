@@ -11,3 +11,4 @@ requests>=2.25.1
 vl-convert-python>=1.8
 python-dotenv==1.1.1
 altair>=5.5
+PyYAML>=6
