@@ -12,6 +12,7 @@ import time
 import shutil
 from dotenv import dotenv_values
 import pkg_resources
+from ItomHeader import ItomHeader
 
 class PlaceHolderDSLProcessor(DSLProcessor):
     def __init__(self, programDirectory: ProgramDirectory):
@@ -188,15 +189,13 @@ Reason about the error and return the corrected code.
             response_text = response_text.split("```python")[1].split("```")[0]
             #print(response_text)
 
-        itom = """#@ dsl: python
-#@ outputs:
-"""
-        for key in outputNames:
-            itom += f"#@    {key}\n"
+        hdr = ItomHeader()
+        hdr.setDslId("python")
+        hdr.setOutputs(outputNames)
+        hdr.setConfig({"mainfunc": function_name})
+        hdr.setDescription(context)
 
-        itom += f"""#@ config:
-#@    mainfunc: '{function_name}'
-"""
+        itom = str(hdr)
         itom += response_text
 
         # save the file to .genitomcache/itom_<hash>.itom

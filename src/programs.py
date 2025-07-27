@@ -3,7 +3,7 @@ import json
 import os
 from datetime import datetime
 from typing import Optional, List, Tuple, TypedDict, Any
-
+from ItomHeader import ItomHeader
 
 # ProgramInput is a class that represents the input of a program
 class ProgramInput(TypedDict):
@@ -71,93 +71,34 @@ class NamedProgram:
         # The header is a list of #@-prefixed lines. Each line is a key-value pair of the form "key: value".
         # The header should be removed from the code text.
         # Once we hit a line that is not prefixed with #@, we stop parsing the header.
-        import yaml
-        import io
 
-        # Extract header lines
-        header_lines = []
-        code_lines = []
-        in_header = True
-
-        for line in code.split("\n"):
-            if in_header and line.startswith("#@"):
-                # Remove #@ prefix and append to header
-                header_lines.append(line[2:].rstrip())
-            else:
-                in_header = False
-                code_lines.append(line)
-
+        
         # Parse header as YAML
         try:
-            header_yaml = yaml.safe_load(io.StringIO("\n".join(header_lines)))
-        except yaml.YAMLError as e:
-            raise ValueError(f"Invalid YAML in header: {str(e)}")
+            hdr = ItomHeader()
+            hdr.parseFromItomString(code)
+        except Exception as e:
+            raise ValueError(f"Invalid header: {str(e)}")
 
-        if not isinstance(header_yaml, dict):
-            raise ValueError("Header YAML must be a dictionary/mapping")
-        
-        print(header_yaml)
-        # Extract required fields
-        description = header_yaml.get("description", "")
-        dslId = header_yaml.get("dsl")
-        inputs = header_yaml.get("inputs", {})
-        outputs = header_yaml.get("outputs", [])
-        config = header_yaml.get("config", {})
+        description = hdr.getDescription()
+        if description is None:
+            description = ""
+        dslId = hdr.getDslId()
+        if dslId is None:
+            dslId = ""
+        inputs = hdr.getInputs()
+        if inputs is None:
+            inputs = {}
+        outputs = hdr.getOutputs()
+        if outputs is None:
+            outputs = {}
+        config = hdr.getConfig()
+        if config is None:
+            config = {}
 
+        remainingCode = hdr.getRemainingCode()
         if dslId is None:
             raise ValueError("No dsl field found in header")
-
-        remainingCode = "\n".join(code_lines)
-
-        if False:
-
-            header = []
-            inHeader = True
-            remainingCodeLines = []
-            for line in code.split("\n"):
-                if inHeader and line.startswith("#@"):
-                    # Remove the #@ prefix
-                    line = line[2:]
-                    header.append(line)
-                else:
-                    inHeader = False
-                    remainingCodeLines.append(line)
-
-            # Parse the header
-            remainingCode = "\n".join(remainingCodeLines)
-            description = ""
-            dslId = None
-            inputs = []
-            outputs = []
-            config = {}
-            for line in header:
-                key, value = line.split(":")
-                key = key.strip()
-                value = value.strip()
-                if key == "description":
-                    description += value + "\n"
-                elif key == "dsl":
-                    if dslId is not None:
-                        raise ValueError(f"Multiple dslId values in header: {dslId} and {value}")
-                    dslId = value
-                elif key == "input":
-                    inputs.append(value)
-                elif key == "output":
-                    outputs.append(value)
-                elif key == "config":
-                    # format of config is var = value
-                    try:
-                        var, value2 = value.split("=")
-                        var = var.strip()
-                        value = value2.strip()
-                        config[var] = eval(value2)
-                    except Exception as e:
-                        raise ValueError(f"Invalid config value: {value} - {e}")
-                else:
-                    raise ValueError(f"Unknown header key: {key}")
-
-        if dslId is None:
-            raise ValueError("No dslId found in header")
 
         return remainingCode, description, dslId, inputs, outputs, config
 
@@ -222,51 +163,7 @@ class NamedProgram:
         self.modified = datetime.now()
 
 
-class ItomHeader:
-    def __init__(self, description: str, dslId: str, inputs: dict, outputs: dict, config: dict):
-        self.description = ""
-        self.dslId = ""
-        self.inputs = {}
-        self.outputs = []
-        self.config = {}
 
-    def parse(self, header_lines: List[str]) -> "ItomHeader":
-        # Parse header as YAML
-        import yaml
-        import io
-        try:
-            header_yaml = yaml.safe_load(io.StringIO("\n".join(header_lines)))
-        except yaml.YAMLError as e:
-            raise ValueError(f"Invalid YAML in header: {str(e)}")
-
-        if not isinstance(header_yaml, dict):
-            raise ValueError("Header YAML must be a dictionary/mapping")
-        
-        
-        # Extract required fields
-        self.description = header_yaml.get("description", "")
-        self.dslId = header_yaml.get("dsl")
-        self.inputs = header_yaml.get("inputs", {})
-        self.outputs = header_yaml.get("outputs", [])
-        self.config = header_yaml.get("config", {})
-
-        return self
-
-    # convert to header string
-    def __str__(self):
-        # add a #@ prefix to each line
-        toRet = ""
-        if self.dslId != "":
-            toRet += "#@ dsl: " + self.dslId + "\n"
-        if self.description != "":
-            toRet += "#@ description: " + self.description + "\n"
-        if self.inputs != {}:
-            toRet += "#@ inputs: " + json.dumps(self.inputs) + "\n"
-        if self.outputs != []:
-            toRet += "#@ outputs: " + json.dumps(self.outputs) + "\n"
-        if self.config != {}:
-            toRet += "#@ config: " + json.dumps(self.config) + "\n"
-        return toRet
 
 
 # ProgramDirectory is a class that stores all the programs in the system

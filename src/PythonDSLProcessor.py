@@ -58,6 +58,7 @@ class PythonDSLProcessor(DSLProcessor):
                 markdown_table += f"| {key} | {value} |\n"
         table += "</TABLE>"
 
+        #print("outputNames", outputNames)
         #print(result)
         if preferredVisualReturnType == "html":
             # Return an HTML image tag that b64 encodes the image directly
