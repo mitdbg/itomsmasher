@@ -3,12 +3,30 @@
 #@ description: Advanced tumor board report with Python computations and LLM analysis
 #@ outputs: []
 
+<style>
+a.variable {
+    background-color: #90EE90;
+    color: #000 !important;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-weight: bold;
+    border: 1px solid #228B22;
+    text-decoration: none !important;
+    cursor: default;
+}
+
+a.variable:hover {
+    background-color: #7FDD7F;
+    text-decoration: none !important;
+}
+</style>
+
 {% set patient_data = include("tb_PythonComputations") %}
 
 {% set imaging_analysis = include("tb_MedicalImagingAnalysis", image_description="CT scan of chest showing large spiculated mass in left lower lobe measuring 6.8cm with irregular margins, central cavitation, and multiple enlarged mediastinal lymph nodes up to 2.3cm. No distant metastases identified.") %}
 
 # Advanced Tumor Board Report
-## Patient ID: {{patient_data.data.patient_id}}
+## Patient ID: **<a href="#" onclick="return false" class="variable">{{patient_data.data.patient_id}}</a>**
 
 ![bg right:40%](https://picsum.photos/600/800?random=medical)
 
@@ -22,11 +40,11 @@
 
 | Parameter | Value | Status |
 |-----------|-------|--------|
-| **Patient ID** | {{patient_data.data.patient_id}} | ✅ Verified | <span style="color: #0066cc; font-size: 0.8em;">[Python]</span> |
-| **Primary Tumor Size** | {{patient_data.data.tumor_size_mm}} mm | ⚠️ Large | <span style="color: #0066cc; font-size: 0.8em;">[Python]</span> |
-| **Calculated Volume** | {{patient_data.data.tumor_volume_cm3}} cm³ | ⚠️ High Burden | <span style="color: #0066cc; font-size: 0.8em;">[Python]</span> |
-| **Growth Rate** | {{patient_data.data.growth_rate_percent}}% | 🚨 Rapid | <span style="color: #0066cc; font-size: 0.8em;">[Python]</span> |
-| **Risk Score** | {{patient_data.data.risk_score}}/10 | 🚨 High Risk | <span style="color: #0066cc; font-size: 0.8em;">[Python]</span> |
+| **Patient ID** | <a href="#" onclick="return false" class="variable">{{patient_data.data.patient_id}}</a> | ✅ Verified | <span style="color: #0066cc; font-size: 0.8em;">[Python]</span> |
+| **Primary Tumor Size** | <a href="#" onclick="return false" class="variable">{{patient_data.data.tumor_size_mm}}</a> mm | ⚠️ Large | <span style="color: #0066cc; font-size: 0.8em;">[Python]</span> |
+| **Calculated Volume** | <a href="#" onclick="return false" class="variable">{{patient_data.data.tumor_volume_cm3}}</a> cm³ | ⚠️ High Burden | <span style="color: #0066cc; font-size: 0.8em;">[Python]</span> |
+| **Growth Rate** | <a href="#" onclick="return false" class="variable">{{patient_data.data.growth_rate_percent}}</a>% | 🚨 Rapid | <span style="color: #0066cc; font-size: 0.8em;">[Python]</span> |
+| **Risk Score** | <a href="#" onclick="return false" class="variable">{{patient_data.data.risk_score}}</a>/10 | 🚨 High Risk | <span style="color: #0066cc; font-size: 0.8em;">[Python]</span> |
 
 ### Python Computation Results
 <a href="http://127.0.0.1:5001/view/tb_PythonComputations" target="_blank" style="color: #0066cc; text-decoration: none; font-size: 0.8em;">[View Source]</a>
@@ -43,15 +61,15 @@
 
 ### LLM-Generated Radiological Findings
 <a href="http://127.0.0.1:5001/view/tb_MedicalImagingAnalysis" target="_blank" style="color: #cc6600; text-decoration: none; font-size: 0.8em;">[View Source]</a>
-- **Location**: {{imaging_analysis.data.tumor_location}} <span style="color: #cc6600; font-size: 0.8em;">[LLM]</span>
-- **Characteristics**: {{imaging_analysis.data.tumor_characteristics}} <span style="color: #cc6600; font-size: 0.8em;">[LLM]</span>
-- **Stage Assessment**: {{imaging_analysis.data.stage_assessment}} <span style="color: #cc6600; font-size: 0.8em;">[LLM]</span>
-- **Metastasis**: {{imaging_analysis.data.metastasis_detected}} <span style="color: #cc6600; font-size: 0.8em;">[LLM]</span>
-- **Confidence Score**: {{imaging_analysis.data.confidence_score}}% <span style="color: #cc6600; font-size: 0.8em;">[LLM]</span>
+- **Location**: <a href="#" onclick="return false" class="variable">{{imaging_analysis.data.tumor_location}}</a> <span style="color: #cc6600; font-size: 0.8em;">[LLM]</span>
+- **Characteristics**: <a href="#" onclick="return false" class="variable">{{imaging_analysis.data.tumor_characteristics}}</a> <span style="color: #cc6600; font-size: 0.8em;">[LLM]</span>
+- **Stage Assessment**: <a href="#" onclick="return false" class="variable">{{imaging_analysis.data.stage_assessment}}</a> <span style="color: #cc6600; font-size: 0.8em;">[LLM]</span>
+- **Metastasis**: <a href="#" onclick="return false" class="variable">{{imaging_analysis.data.metastasis_detected}}</a> <span style="color: #cc6600; font-size: 0.8em;">[LLM]</span>
+- **Confidence Score**: <a href="#" onclick="return false" class="variable">{{imaging_analysis.data.confidence_score}}</a>% <span style="color: #cc6600; font-size: 0.8em;">[LLM]</span>
 
 ### AI-Assisted Analysis Notes
 <a href="http://127.0.0.1:5001/view/tb_MedicalImagingAnalysis" target="_blank" style="color: #cc6600; text-decoration: none; font-size: 0.8em;">[View Source]</a>
-> {{imaging_analysis.data.radiologist_notes}} <span style="color: #cc6600; font-size: 0.8em;">[LLM Generated]</span>
+> <a href="#" onclick="return false" class="variable">{{imaging_analysis.data.radiologist_notes}}</a> <span style="color: #cc6600; font-size: 0.8em;">[LLM Generated]</span>
 
 ![Medical Scan](https://picsum.photos/400/300?random=scan)
 
@@ -63,11 +81,11 @@
 
 {% set risk_level = "High" if patient_data.data.risk_score > 7 else "Moderate" if patient_data.data.risk_score > 4 else "Low" %}
 
-### Risk Assessment: **{{risk_level}} Risk**
+### Risk Assessment: **<a href="#" onclick="return false" class="variable">{{risk_level}}</a> Risk**
 
-- **Quantitative Risk Score**: {{patient_data.data.risk_score}}/10
-- **Growth Rate Analysis**: {{patient_data.data.growth_rate_percent}}% progression
-- **Survival Probability**: {{patient_data.data.survival_probability}}%
+- **Quantitative Risk Score**: <a href="#" onclick="return false" class="variable">{{patient_data.data.risk_score}}</a>/10
+- **Growth Rate Analysis**: <a href="#" onclick="return false" class="variable">{{patient_data.data.growth_rate_percent}}</a>% progression
+- **Survival Probability**: <a href="#" onclick="return false" class="variable">{{patient_data.data.survival_probability}}</a>%
 
 ### Python-Based Risk Factors
 <a href="http://127.0.0.1:5001/view/tb_PythonComputations" target="_blank" style="color: #0066cc; text-decoration: none; font-size: 0.8em;">[View Source]</a>
@@ -93,14 +111,14 @@
 ## Treatment Recommendations
 
 ### Primary Recommendation
-**{{patient_data.data.treatment_recommendation}}**
+**<a href="#" onclick="return false" class="variable">{{patient_data.data.treatment_recommendation}}</a>**
 
 ### Python Algorithm Logic
 <a href="http://127.0.0.1:5001/view/tb_PythonComputations" target="_blank" style="color: #0066cc; text-decoration: none; font-size: 0.8em;">[View Source]</a>
-- **Risk Score {{patient_data.data.risk_score}}** → Treatment category selection
-- **Size {{patient_data.data.tumor_size_mm}}mm** → Surgical approach determination
-- **Growth Rate {{patient_data.data.growth_rate_percent}}%** → Aggressiveness level
-- **Volume {{patient_data.data.tumor_volume_cm3}}cm³** → Treatment intensity
+- **Risk Score <a href="#" onclick="return false" class="variable">{{patient_data.data.risk_score}}</a>** → Treatment category selection
+- **Size <a href="#" onclick="return false" class="variable">{{patient_data.data.tumor_size_mm}}</a>mm** → Surgical approach determination
+- **Growth Rate <a href="#" onclick="return false" class="variable">{{patient_data.data.growth_rate_percent}}</a>%** → Aggressiveness level
+- **Volume <a href="#" onclick="return false" class="variable">{{patient_data.data.tumor_volume_cm3}}</a>cm³** → Treatment intensity
 
 ### Multidisciplinary Consensus
 {% if "surgery" in patient_data.data.treatment_recommendation.lower() %}
