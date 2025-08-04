@@ -131,7 +131,7 @@ class PreprocessedDSL(DSLProcessor):
                                                     {"startTimestamp": time.time(), 
                                                     "inputs": moduleInputs}, 
                                                     targetReturnType,
-                                                    config=config,
+                                                    config=program.config,
                                                     parentTracer=self.tracer)
             if not programOutput.succeeded():
                 return dict(error="ERROR: program " + programName + " failed with message: " + programOutput.errorMessage(),
