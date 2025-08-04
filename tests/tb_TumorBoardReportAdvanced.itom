@@ -1,0 +1,197 @@
+#@ dsl: slides
+#@ name: TumorBoardReportAdvanced
+#@ description: Advanced tumor board report with Python computations and LLM analysis
+#@ outputs: []
+
+{% set patient_data = include("tb_PythonComputations") %}
+
+{% set imaging_analysis = include("tb_MedicalImagingAnalysis", image_description="CT scan of chest showing large spiculated mass in left lower lobe measuring 6.8cm with irregular margins, central cavitation, and multiple enlarged mediastinal lymph nodes up to 2.3cm. No distant metastases identified.") %}
+
+# Advanced Tumor Board Report
+## Patient ID: {{patient_data.data.patient_id}}
+
+![bg right:40%](https://picsum.photos/600/800?random=medical)
+
+### Meeting Date: December 15, 2024
+### Multidisciplinary Team Review
+### **AI-Enhanced Analysis**
+
+---
+
+## Patient Demographics & Clinical Data
+
+| Parameter | Value | Status |
+|-----------|-------|--------|
+| **Patient ID** | {{patient_data.data.patient_id}} | ✅ Verified | <span style="color: #0066cc; font-size: 0.8em;">[Python]</span> |
+| **Primary Tumor Size** | {{patient_data.data.tumor_size_mm}} mm | ⚠️ Large | <span style="color: #0066cc; font-size: 0.8em;">[Python]</span> |
+| **Calculated Volume** | {{patient_data.data.tumor_volume_cm3}} cm³ | ⚠️ High Burden | <span style="color: #0066cc; font-size: 0.8em;">[Python]</span> |
+| **Growth Rate** | {{patient_data.data.growth_rate_percent}}% | 🚨 Rapid | <span style="color: #0066cc; font-size: 0.8em;">[Python]</span> |
+| **Risk Score** | {{patient_data.data.risk_score}}/10 | 🚨 High Risk | <span style="color: #0066cc; font-size: 0.8em;">[Python]</span> |
+
+### Python Computation Results
+<a href="http://127.0.0.1:5001/view/tb_PythonComputations" target="_blank" style="color: #0066cc; text-decoration: none; font-size: 0.8em;">[View Source]</a>
+- **Volume Calculation**: Using spherical approximation V = (4/3) × π × r³
+- **Growth Analysis**: Serial measurement comparison
+- **Risk Algorithm**: Multi-factor scoring (size + growth + complexity)
+- **Survival Model**: Statistical prediction based on clinical factors
+
+<!-- Clinical presentation shows significant tumor burden with calculated metrics indicating active disease progression -->
+
+---
+
+## AI-Enhanced Imaging Analysis
+
+### LLM-Generated Radiological Findings
+<a href="http://127.0.0.1:5001/view/tb_MedicalImagingAnalysis" target="_blank" style="color: #cc6600; text-decoration: none; font-size: 0.8em;">[View Source]</a>
+- **Location**: {{imaging_analysis.data.tumor_location}} <span style="color: #cc6600; font-size: 0.8em;">[LLM]</span>
+- **Characteristics**: {{imaging_analysis.data.tumor_characteristics}} <span style="color: #cc6600; font-size: 0.8em;">[LLM]</span>
+- **Stage Assessment**: {{imaging_analysis.data.stage_assessment}} <span style="color: #cc6600; font-size: 0.8em;">[LLM]</span>
+- **Metastasis**: {{imaging_analysis.data.metastasis_detected}} <span style="color: #cc6600; font-size: 0.8em;">[LLM]</span>
+- **Confidence Score**: {{imaging_analysis.data.confidence_score}}% <span style="color: #cc6600; font-size: 0.8em;">[LLM]</span>
+
+### AI-Assisted Analysis Notes
+<a href="http://127.0.0.1:5001/view/tb_MedicalImagingAnalysis" target="_blank" style="color: #cc6600; text-decoration: none; font-size: 0.8em;">[View Source]</a>
+> {{imaging_analysis.data.radiologist_notes}} <span style="color: #cc6600; font-size: 0.8em;">[LLM Generated]</span>
+
+![Medical Scan](https://picsum.photos/400/300?random=scan)
+
+<!-- AI analysis reveals {{imaging_analysis.data.tumor_characteristics}} with staging consistent with {{imaging_analysis.data.stage_assessment}} -->
+
+---
+
+## Risk Stratification & Prognosis
+
+{% set risk_level = "High" if patient_data.data.risk_score > 7 else "Moderate" if patient_data.data.risk_score > 4 else "Low" %}
+
+### Risk Assessment: **{{risk_level}} Risk**
+
+- **Quantitative Risk Score**: {{patient_data.data.risk_score}}/10
+- **Growth Rate Analysis**: {{patient_data.data.growth_rate_percent}}% progression
+- **Survival Probability**: {{patient_data.data.survival_probability}}%
+
+### Python-Based Risk Factors
+<a href="http://127.0.0.1:5001/view/tb_PythonComputations" target="_blank" style="color: #0066cc; text-decoration: none; font-size: 0.8em;">[View Source]</a>
+{% if risk_level == "High" %}
+- 🚨 **Rapid tumor progression** (>15% growth)
+- 🚨 **Advanced stage disease**
+- 🚨 **Large tumor burden** (>100 cm³)
+- 🚨 **Requires aggressive intervention**
+{% elif risk_level == "Moderate" %}
+- ⚠️ **Moderate progression rate**
+- ⚠️ **Standard treatment protocols applicable**
+- ⚠️ **Regular monitoring required**
+{% else %}
+- ✅ **Slow progression**
+- ✅ **Conservative management possible**
+- ✅ **Excellent prognosis**
+{% endif %}
+
+<!-- Risk stratification places patient in {{risk_level}} category with {{patient_data.data.survival_probability}}% projected survival -->
+
+---
+
+## Treatment Recommendations
+
+### Primary Recommendation
+**{{patient_data.data.treatment_recommendation}}**
+
+### Python Algorithm Logic
+<a href="http://127.0.0.1:5001/view/tb_PythonComputations" target="_blank" style="color: #0066cc; text-decoration: none; font-size: 0.8em;">[View Source]</a>
+- **Risk Score {{patient_data.data.risk_score}}** → Treatment category selection
+- **Size {{patient_data.data.tumor_size_mm}}mm** → Surgical approach determination
+- **Growth Rate {{patient_data.data.growth_rate_percent}}%** → Aggressiveness level
+- **Volume {{patient_data.data.tumor_volume_cm3}}cm³** → Treatment intensity
+
+### Multidisciplinary Consensus
+{% if "surgery" in patient_data.data.treatment_recommendation.lower() %}
+- **Surgical Oncology**: Resection feasible
+- **Medical Oncology**: Adjuvant therapy recommended
+- **Radiation Oncology**: Post-operative radiation
+{% elif "chemotherapy" in patient_data.data.treatment_recommendation.lower() %}
+- **Medical Oncology**: Systemic therapy primary
+- **Radiation Oncology**: Consider concurrent radiation
+- **Surgical Oncology**: Reassess after response
+{% else %}
+- **Palliative Care**: Symptom management focus
+- **Medical Oncology**: Supportive care
+- **Radiation Oncology**: Palliative radiation if indicated
+{% endif %}
+
+<!-- Treatment team recommends {{patient_data.data.treatment_recommendation}} based on comprehensive analysis -->
+
+---
+
+## Follow-up Plan
+
+### Immediate Actions (Next 2 Weeks)
+- [ ] Laboratory studies (CBC, CMP, tumor markers)
+- [ ] Additional imaging if indicated
+- [ ] Specialist consultations as needed
+
+---
+
+## Team Participants
+
+| Role | Physician | Recommendations |
+|------|-----------|-----------------|
+| **Medical Oncology** | Dr. Sarah Chen | {{patient_data.data.treatment_recommendation}} |
+| **Surgical Oncology** | Dr. Michael Rodriguez | Surgical evaluation |
+| **Radiation Oncology** | Dr. Emily Johnson | Radiation planning |
+| **Radiology** | Dr. David Kim | {{imaging_analysis.data.stage_assessment}} |
+| **Pathology** | Dr. Lisa Wang | Histologic confirmation |
+
+<!-- This concludes the tumor board review for patient {{patient_data.data.patient_id}} with consensus on {{patient_data.data.treatment_recommendation}} -->
+
+---
+
+## ITOM System Capabilities Demonstrated
+
+### Data Source Legend
+- <span style="color: #0066cc;">[Python]</span> - Data computed by Python algorithms
+- <span style="color: #cc6600;">[LLM]</span> - Data generated by Large Language Model analysis
+- <a href="http://127.0.0.1:5001/view/tb_PythonComputations" target="_blank" style="color: #0066cc; text-decoration: none;">[View Source]</a> - Click to view Python computation source
+- <a href="http://127.0.0.1:5001/view/tb_MedicalImagingAnalysis" target="_blank" style="color: #cc6600; text-decoration: none;">[View Source]</a> - Click to view LLM analysis source
+
+### 1. Python Data Computations ✅
+**File**: `tb_PythonComputations.itom` <a href="http://127.0.0.1:5001/view/tb_PythonComputations" target="_blank" style="color: #0066cc; text-decoration: none;">[View Source]</a>
+- **Mathematical Calculations**: Tumor volume using spherical approximation V = (4/3) × π × r³
+- **Statistical Modeling**: Risk scoring and survival probability algorithms
+- **Treatment Logic**: Algorithmic treatment recommendation based on risk factors
+- **Data Processing**: Real-time calculation of clinical metrics
+- **Live Data**: All values in this report are computed in real-time
+
+### 2. LLM Integration ✅
+**File**: `tb_MedicalImagingAnalysis.itom` <a href="http://127.0.0.1:5001/view/tb_MedicalImagingAnalysis" target="_blank" style="color: #cc6600; text-decoration: none;">[View Source]</a>
+- **Natural Language Processing**: Medical image description interpretation
+- **Medical Knowledge**: TNM staging and radiological expertise
+- **Structured Output**: JSON-formatted analysis results
+- **Confidence Assessment**: Uncertainty quantification in AI analysis
+- **Live Analysis**: All radiological findings are generated by AI
+
+### Technical Architecture
+```
+TumorBoardReportAdvanced.itom
+├── Data Layer (tb_PythonComputations.itom)
+│   ├── Clinical calculations
+│   ├── Risk algorithms
+│   └── Treatment logic
+├── AI Layer (tb_MedicalImagingAnalysis.itom)
+│   ├── LLM image analysis
+│   ├── Medical knowledge integration
+│   └── Confidence assessment
+└── Presentation Layer (SlideDSLProcessor.py)
+    ├── Professional slides
+    ├── Dynamic content
+    └── Multi-format output
+```
+
+### Source Code Access Options
+
+**For Slides Presentations:**
+- **Option 1**: Click any [View Source] link to open source code in a new tab
+- **Option 2**: Use the ITOM viewer at http://127.0.0.1:5001 to browse all programs
+- **Option 3**: Access individual programs directly:
+  - Python Computations: http://127.0.0.1:5001/view/tb_PythonComputations
+  - Medical Imaging Analysis: http://127.0.0.1:5001/view/tb_MedicalImagingAnalysis
+
+**Note**: JavaScript floating windows are not supported in slide presentations, but the source code is easily accessible via direct links. 

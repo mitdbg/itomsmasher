@@ -1,0 +1,30 @@
+#@ dsl: llm
+#@ outputs:
+#@  tumor_location: anatomical location of the tumor
+#@  tumor_characteristics: morphological characteristics of the tumor
+#@  stage_assessment: TNM staging assessment
+#@  metastasis_detected: presence and location of metastases
+#@  radiologist_notes: detailed radiologist interpretation
+#@  confidence_score: confidence level in the analysis (0-100)
+#@ inputs:
+#@  image_description: "CT scan of chest showing lung mass"
+
+Based on the medical imaging description provided, perform a comprehensive radiological analysis and return the findings as a JSON object:
+
+{
+{% for varb in __outputs %}
+  "{{varb}}": < {{__outputs[varb]}} >,
+{% endfor %}
+}
+
+Image Description: {{image_description}}
+
+Please analyze this medical image and provide a detailed radiological assessment including:
+1. Precise anatomical location of any identified lesions
+2. Detailed morphological characteristics (size, shape, margins, density)
+3. TNM staging based on imaging findings
+4. Assessment for regional or distant metastases
+5. Professional radiologist interpretation notes
+6. Confidence level in the analysis (0-100%)
+
+Provide your analysis in the JSON format above. 

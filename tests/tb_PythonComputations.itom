@@ -1,0 +1,82 @@
+#@ dsl: python
+#@ config: 
+#@    mainfunc: 'tumor_analysis'
+#@ outputs: patient_id, tumor_size_mm, tumor_volume_cm3, growth_rate_percent, risk_score, treatment_recommendation, survival_probability
+
+def tumor_analysis():
+    import math
+    import random
+    import datetime
+    """
+    Comprehensive tumor analysis with data computations for tumor board review
+    """
+    
+    # Generate realistic patient data
+    patient_id = f"TB-{random.randint(10000, 99999)}"
+    
+    # Tumor measurements and calculations
+    # Primary tumor diameter in millimeters
+    tumor_size_mm = random.uniform(15.0, 85.0)
+    
+    # Calculate tumor volume assuming spherical approximation: V = (4/3) * π * r³
+    radius_cm = (tumor_size_mm / 2) / 10  # Convert mm to cm
+    tumor_volume_cm3 = round((4/3) * math.pi * (radius_cm ** 3), 2)
+    
+    # Growth rate analysis (comparing current vs previous measurements)
+    previous_size = tumor_size_mm * random.uniform(0.70, 0.95)  # Previous measurement
+    growth_rate_percent = round(((tumor_size_mm - previous_size) / previous_size) * 100, 1)
+    
+    # Risk scoring algorithm (0-10 scale)
+    # Factors: size, growth rate, location complexity, patient factors
+    size_score = min(tumor_size_mm / 10, 4.0)  # Size contribution (max 4 points)
+    growth_score = min(growth_rate_percent / 5, 3.0)  # Growth rate contribution (max 3 points)
+    complexity_score = random.uniform(1.0, 3.0)  # Anatomical complexity (1-3 points)
+    
+    risk_score = round(size_score + growth_score + complexity_score, 1)
+    risk_score = min(risk_score, 10.0)  # Cap at 10
+    
+    # Treatment recommendation based on risk factors
+    if risk_score >= 8.0:
+        treatment_options = [
+            "Immediate surgical resection with adjuvant chemotherapy",
+            "Neoadjuvant chemotherapy followed by surgery",
+            "Concurrent chemoradiation therapy"
+        ]
+    elif risk_score >= 5.0:
+        treatment_options = [
+            "Surgical resection with consideration for adjuvant therapy", 
+            "Primary chemotherapy with surgical evaluation",
+            "Radiation therapy with concurrent chemotherapy"
+        ]
+    else:
+        treatment_options = [
+            "Surgical resection with active surveillance",
+            "Active surveillance with imaging follow-up",
+            "Minimally invasive surgical approach"
+        ]
+    
+    treatment_recommendation = random.choice(treatment_options)
+    
+    # Survival probability estimation (simplified model)
+    # Based on size, growth rate, and risk score
+    base_survival = 85.0  # Base 5-year survival rate
+    
+    # Adjust based on risk factors
+    size_penalty = (tumor_size_mm - 20) * 0.5 if tumor_size_mm > 20 else 0
+    growth_penalty = growth_rate_percent * 1.2 if growth_rate_percent > 10 else 0
+    risk_penalty = (risk_score - 5) * 3 if risk_score > 5 else 0
+    
+    survival_probability = round(
+        max(base_survival - size_penalty - growth_penalty - risk_penalty, 15.0), 1
+    )
+    
+    # Return computed values
+    return {
+        'patient_id': patient_id,
+        'tumor_size_mm': round(tumor_size_mm, 1),
+        'tumor_volume_cm3': tumor_volume_cm3,
+        'growth_rate_percent': growth_rate_percent,
+        'risk_score': risk_score,
+        'treatment_recommendation': treatment_recommendation,
+        'survival_probability': survival_probability
+    } 
