@@ -373,6 +373,30 @@ def view_program(program_name):
 #        print("Error: ", e)
 #        return f"Error viewing program: {str(e)}", 500
 
+@app.route('/api/source/<program_name>')
+def get_source_code(program_name):
+    """API endpoint to get source code for a program"""
+    try:
+        program = programDirectory.getProgram(program_name)
+        if program:
+            return program.getLatestCode(), 200, {'Content-Type': 'text/plain'}
+        else:
+            return f"Program {program_name} not found", 404
+    except Exception as e:
+        return f"Error retrieving source code: {str(e)}", 500
+
+@app.route('/<filename>.html')
+def serve_html_file(filename):
+    """Serve generated HTML files"""
+    try:
+        file_path = os.path.join(os.getcwd(), f"{filename}.html")
+        if os.path.exists(file_path):
+            return send_file(file_path, mimetype='text/html')
+        else:
+            return f"File {filename}.html not found", 404
+    except Exception as e:
+        return f"Error serving file: {str(e)}", 500
+
 if __name__ == '__main__':
-    app.run(debug=True, port=5000)
+    app.run(debug=True, host='0.0.0.0', port=5001)
 
