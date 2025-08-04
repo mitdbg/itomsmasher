@@ -43,11 +43,16 @@ class SlideDSLProcessor(BasicDSLProcessor):
 
         # if the the preferred visual return type is html, run the marp command to crate the html
         if preferredVisualReturnType == "html":
-            os.system(f"marp {infile} -o {outfile}");
-
-            # read the html file into a string
-            with open(outfile, "r") as file:
-                html_string = file.read()
+            result = os.system(f"marp {infile} -o {outfile}")
+            
+            # Check if marp command succeeded and html file was created
+            if result == 0 and os.path.exists(outfile):
+                # read the html file into a string
+                with open(outfile, "r") as file:
+                    html_string = file.read()
+            else:
+                # Fallback: marp failed, return error or use markdown
+                return ProgramOutput(time.time(), "error", f"Marp command failed. HTML file not generated. Exit code: {result}", {})
 
         with open(infile, "r") as file:
             md_string = file.read()
