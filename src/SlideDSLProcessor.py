@@ -43,7 +43,7 @@ class SlideDSLProcessor(BasicDSLProcessor):
 
         # if the the preferred visual return type is html, run the marp command to crate the html
         if preferredVisualReturnType == "html":
-            result = os.system(f"marp {infile} -o {outfile}")
+            result = os.system(f"marp {infile} -o {outfile} --html --allow-local-files")
             
             # Check if marp command succeeded and html file was created
             if result == 0 and os.path.exists(outfile):

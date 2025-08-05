@@ -1,0 +1,730 @@
+#@ dsl: slides
+#@ description: Bubble Sort Animation - Step-by-step animated demonstration
+
+<style>
+.bubble-array {
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    height: 200px;
+    margin: 20px 0;
+    gap: 10px;
+}
+
+.bubble-element {
+    width: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: bold;
+    font-size: 18px;
+    border-radius: 8px;
+    transition: all 0.8s ease-in-out;
+    position: relative;
+    background: linear-gradient(45deg, #3498db, #2980b9);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+.comparing {
+    background: linear-gradient(45deg, #f39c12, #e67e22) !important;
+    transform: scale(1.1);
+    box-shadow: 0 6px 12px rgba(243, 156, 18, 0.4);
+}
+
+.swapping {
+    background: linear-gradient(45deg, #e74c3c, #c0392b) !important;
+    transform: translateY(-20px) scale(1.1);
+    box-shadow: 0 8px 16px rgba(231, 76, 60, 0.4);
+}
+
+.sorted {
+    background: linear-gradient(45deg, #27ae60, #229954) !important;
+    box-shadow: 0 4px 8px rgba(39, 174, 96, 0.4);
+}
+
+@keyframes highlight {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.2); }
+}
+
+.highlight {
+    animation: highlight 1s ease-in-out;
+}
+
+.step-info {
+    text-align: center;
+    font-size: 18px;
+    margin: 20px 0;
+    min-height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(52, 152, 219, 0.1);
+    border-radius: 8px;
+    padding: 15px;
+    border-left: 4px solid #3498db;
+}
+
+.controls {
+    text-align: center;
+    margin: 20px 0;
+}
+
+.btn {
+    background: linear-gradient(45deg, #3498db, #2980b9);
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    margin: 0 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: all 0.3s ease;
+}
+
+.btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+.btn:disabled {
+    background: #95a5a6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.modern-container {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 16px;
+    padding: 20px;
+    margin: 15px auto;
+    max-width: 95%;
+    max-height: 85vh;
+    box-shadow: 0 15px 40px rgba(0,0,0,0.3);
+    position: relative;
+    overflow: hidden;
+    box-sizing: border-box;
+}
+
+.particles-bg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+}
+
+.particle {
+    position: absolute;
+    width: 4px;
+    height: 4px;
+    background: rgba(255,255,255,0.3);
+    border-radius: 50%;
+    animation: float 6s ease-in-out infinite;
+}
+
+@keyframes float {
+    0%, 100% { transform: translateY(0px); opacity: 0; }
+    50% { transform: translateY(-100px); opacity: 1; }
+}
+
+.glass-panel {
+    position: relative;
+    z-index: 10;
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 12px;
+    padding: 20px;
+    backdrop-filter: blur(20px);
+    box-sizing: border-box;
+}
+
+.modern-title {
+    font-size: 22px;
+    font-weight: 700;
+    color: white;
+    text-align: center;
+    margin-bottom: 20px;
+    text-shadow: 0 2px 15px rgba(0,0,0,0.3);
+}
+
+.modern-array-container {
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    height: 150px;
+    margin: 20px 0;
+    gap: 8px;
+    perspective: 1000px;
+}
+
+.modern-element {
+    width: 55px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 600;
+    font-size: 14px;
+    border-radius: 10px;
+    transition: all 0.6s ease;
+    background: linear-gradient(145deg, rgba(255,255,255,0.2), rgba(255,255,255,0.05));
+    border: 1px solid rgba(255,255,255,0.1);
+    backdrop-filter: blur(10px);
+    cursor: pointer;
+}
+
+.modern-comparing {
+    background: linear-gradient(145deg, rgba(255,193,7,0.9), rgba(255,152,0,0.7)) !important;
+    transform: translateY(-10px) scale(1.1);
+    animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { transform: translateY(-10px) scale(1.1); }
+    50% { transform: translateY(-15px) scale(1.2); }
+}
+
+.modern-swapping {
+    background: linear-gradient(145deg, rgba(244,67,54,0.9), rgba(233,30,99,0.7)) !important;
+    transform: translateY(-25px) scale(1.15);
+    animation: swap-dance 0.8s ease-in-out;
+}
+
+@keyframes swap-dance {
+    0%, 100% { transform: translateY(-25px) scale(1.15); }
+    50% { transform: translateY(-35px) scale(1.25) rotateZ(5deg); }
+}
+
+.modern-sorted {
+    background: linear-gradient(145deg, rgba(76,175,80,0.9), rgba(139,195,74,0.7)) !important;
+}
+
+.modern-status {
+    text-align: center;
+    margin: 15px 0;
+    padding: 15px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 10px;
+    color: white;
+    font-weight: 500;
+    font-size: 14px;
+}
+
+.modern-controls {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin: 20px 0;
+}
+
+.modern-btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 25px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.4s ease;
+    min-width: 110px;
+}
+
+.modern-btn-primary {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    box-shadow: 0 8px 25px rgba(102,126,234,0.4);
+}
+
+.modern-btn-secondary {
+    background: rgba(255,255,255,0.2);
+    color: white;
+    border: 1px solid rgba(255,255,255,0.3);
+}
+
+.modern-btn:hover {
+    transform: translateY(-3px) scale(1.05);
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 8px;
+    margin-top: 20px;
+}
+
+.stat-card {
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 12px;
+    padding: 12px;
+    text-align: center;
+}
+
+.stat-number {
+    font-size: 18px;
+    font-weight: 700;
+    color: #00f5ff;
+    text-shadow: 0 0 8px rgba(0,245,255,0.5);
+}
+
+.stat-label {
+    font-size: 12px;
+    color: rgba(255,255,255,0.8);
+    margin-top: 4px;
+}
+
+</style>
+
+# 🔀 Bubble Sort Animation
+### Interactive Algorithm Visualization
+
+---
+
+## Live Animation Demo
+
+<div class="bubble-array" id="array-container">
+    <div class="bubble-element" data-value="64" style="height: 128px;">64</div>
+    <div class="bubble-element" data-value="34" style="height: 68px;">34</div>
+    <div class="bubble-element" data-value="25" style="height: 50px;">25</div>
+    <div class="bubble-element" data-value="12" style="height: 24px;">12</div>
+    <div class="bubble-element" data-value="22" style="height: 44px;">22</div>
+    <div class="bubble-element" data-value="11" style="height: 22px;">11</div>
+    <div class="bubble-element" data-value="90" style="height: 180px;">90</div>
+</div>
+
+<div class="step-info" id="step-info">
+    Click "Start Animation" to begin the bubble sort demonstration
+</div>
+
+<div class="controls">
+    <button class="btn" onclick="startAnimation()">🚀 Start Animation</button>
+    <button class="btn" onclick="resetArray()">🔄 Reset</button>
+    <button class="btn" onclick="stepThrough()">👣 Step Through</button>
+</div>
+
+<script>
+let array = [64, 34, 25, 12, 22, 11, 90];
+let originalArray = [...array];
+let isAnimating = false;
+let currentStep = 0;
+let currentPass = 0;
+let currentIndex = 0;
+
+function updateDisplay() {
+    const container = document.getElementById('array-container');
+    container.innerHTML = '';
+    
+    array.forEach((value, index) => {
+        const element = document.createElement('div');
+        element.className = 'bubble-element';
+        element.style.height = `${value * 2}px`;
+        element.textContent = value;
+        element.setAttribute('data-value', value);
+        
+        if (index >= array.length - currentPass) {
+            element.classList.add('sorted');
+        }
+        
+        container.appendChild(element);
+    });
+}
+
+function updateStepInfo(message) {
+    document.getElementById('step-info').textContent = message;
+}
+
+async function highlightElements(index1, index2, className = 'comparing') {
+    const elements = document.querySelectorAll('.bubble-element');
+    if (elements[index1]) elements[index1].classList.add(className);
+    if (elements[index2]) elements[index2].classList.add(className);
+    
+    return new Promise(resolve => setTimeout(resolve, 1000));
+}
+
+async function clearHighlights() {
+    const elements = document.querySelectorAll('.bubble-element');
+    elements.forEach(el => {
+        el.classList.remove('comparing', 'swapping', 'highlight');
+    });
+}
+
+async function swapElements(index1, index2) {
+    const elements = document.querySelectorAll('.bubble-element');
+    
+    // Add swapping animation
+    elements[index1].classList.add('swapping');
+    elements[index2].classList.add('swapping');
+    
+    // Wait for animation
+    await new Promise(resolve => setTimeout(resolve, 800));
+    
+    // Swap in array
+    [array[index1], array[index2]] = [array[index2], array[index1]];
+    
+    // Update display
+    updateDisplay();
+    
+    return new Promise(resolve => setTimeout(resolve, 300));
+}
+
+async function startAnimation() {
+    if (isAnimating) return;
+    
+    isAnimating = true;
+    const startBtn = document.querySelector('button[onclick="startAnimation()"]');
+    startBtn.disabled = true;
+    
+    const n = array.length;
+    
+    for (let i = 0; i < n - 1; i++) {
+        currentPass = i;
+        updateStepInfo(`Pass ${i + 1}: Finding the ${i + 1}${getOrdinalSuffix(i + 1)} largest element`);
+        
+        for (let j = 0; j < n - i - 1; j++) {
+            currentIndex = j;
+            
+            // Highlight elements being compared
+            await highlightElements(j, j + 1, 'comparing');
+            updateStepInfo(`Comparing ${array[j]} and ${array[j + 1]}`);
+            
+            if (array[j] > array[j + 1]) {
+                updateStepInfo(`${array[j]} > ${array[j + 1]}, swapping!`);
+                await swapElements(j, j + 1);
+            } else {
+                updateStepInfo(`${array[j]} ≤ ${array[j + 1]}, no swap needed`);
+                await new Promise(resolve => setTimeout(resolve, 800));
+            }
+            
+            await clearHighlights();
+        }
+        
+        // Mark last element as sorted
+        updateDisplay();
+        updateStepInfo(`Pass ${i + 1} complete! Element ${array[n - i - 1]} is in its final position`);
+        await new Promise(resolve => setTimeout(resolve, 1000));
+    }
+    
+    // Mark all as sorted
+    updateDisplay();
+    updateStepInfo('🎉 Sorting complete! All elements are now in ascending order');
+    
+    isAnimating = false;
+    startBtn.disabled = false;
+}
+
+function getOrdinalSuffix(num) {
+    const suffixes = ['th', 'st', 'nd', 'rd'];
+    const value = num % 100;
+    return suffixes[(value - 20) % 10] || suffixes[value] || suffixes[0];
+}
+
+function resetArray() {
+    if (isAnimating) return;
+    
+    array = [...originalArray];
+    currentStep = 0;
+    currentPass = 0;
+    currentIndex = 0;
+    
+    updateDisplay();
+    updateStepInfo('Array reset to original state. Click "Start Animation" to begin sorting.');
+}
+
+async function stepThrough() {
+    if (isAnimating) return;
+    
+    // Implement step-by-step functionality
+    updateStepInfo('Step-through mode: Use this to manually control each comparison and swap');
+}
+
+// Initialize display
+updateDisplay();
+</script>
+
+---
+
+## Algorithm Analysis
+
+### Time Complexity
+- **Best Case:** O(n) - when array is already sorted
+- **Average Case:** O(n²) 
+- **Worst Case:** O(n²) - when array is reverse sorted
+
+### Space Complexity
+- **O(1)** - only uses a constant amount of extra space
+
+---
+<div class="modern-container">
+<div class="glass-panel">
+<h2 class="modern-title">✨ Futuristic Bubble Sort Studio</h2>
+<div class="modern-array-container" id="modern-array"></div>
+<div class="modern-status" id="modern-status">
+Ready to experience the future of algorithm visualization
+</div>
+<div class="modern-controls">
+<button class="modern-btn modern-btn-primary" onclick="startModernAnimation()">
+🚀 Launch Sequence
+</button>
+<button class="modern-btn modern-btn-secondary" onclick="resetModernArray()">
+🔄 Reset Matrix
+</button>
+<button class="modern-btn modern-btn-secondary" onclick="generateRandomArray()">
+🎲 Randomize
+</button>
+</div>
+<div class="stats-grid">
+<div class="stat-card">
+<div class="stat-number" id="comparisons">0</div>
+<div class="stat-label">Comparisons</div>
+</div>
+<div class="stat-card">
+<div class="stat-number" id="swaps">0</div>
+<div class="stat-label">Swaps</div>
+</div>
+<div class="stat-card">
+<div class="stat-number" id="passes">0</div>
+<div class="stat-label">Passes</div>
+</div>
+<div class="stat-card">
+<div class="stat-number" id="efficiency">0%</div>
+<div class="stat-label">Efficiency</div>
+</div>
+<div class="stat-card">
+<div class="stat-number" id="timer">0.00s</div>
+<div class="stat-label">Time</div>
+</div>
+</div>
+</div>
+</div>
+
+<script>
+class ModernBubbleSortVisualizer {
+    constructor() {
+        this.array = [42, 17, 89, 23, 56, 31, 74];
+        this.originalArray = [...this.array];
+        this.isAnimating = false;
+        this.stats = { comparisons: 0, swaps: 0, passes: 0 };
+        this.startTime = null;
+        this.timerInterval = null;
+        
+        this.initializeParticles();
+        this.updateModernDisplay();
+    }
+    
+    initializeParticles() {
+        const container = document.getElementById('particles');
+        if (!container) return;
+        
+        for (let i = 0; i < 30; i++) {
+            const particle = document.createElement('div');
+            particle.className = 'particle';
+            particle.style.left = Math.random() * 100 + '%';
+            particle.style.animationDelay = Math.random() * 6 + 's';
+            container.appendChild(particle);
+        }
+    }
+    
+    updateModernDisplay() {
+        const container = document.getElementById('modern-array');
+        if (!container) return;
+        
+        container.innerHTML = '';
+        
+        this.array.forEach((value, index) => {
+            const element = document.createElement('div');
+            element.className = 'modern-element';
+            element.style.height = `${value * 1.5}px`;
+            element.textContent = value;
+            container.appendChild(element);
+        });
+        
+        this.updateStats();
+    }
+    
+    updateStats() {
+        const updateElement = (id, value) => {
+            const el = document.getElementById(id);
+            if (el) el.textContent = value;
+        };
+        
+        updateElement('comparisons', this.stats.comparisons);
+        updateElement('swaps', this.stats.swaps);
+        updateElement('passes', this.stats.passes);
+        
+        const totalOps = this.array.length * (this.array.length - 1) / 2;
+        const efficiency = totalOps > 0 ? Math.round((this.stats.comparisons / totalOps) * 100) : 0;
+        updateElement('efficiency', efficiency + '%');
+        
+        // Update timer display
+        this.updateTimer();
+    }
+    
+    startTimer() {
+        this.startTime = Date.now();
+        this.timerInterval = setInterval(() => {
+            this.updateTimer();
+        }, 10); // Update every 10ms for smooth display
+    }
+    
+    stopTimer() {
+        if (this.timerInterval) {
+            clearInterval(this.timerInterval);
+            this.timerInterval = null;
+        }
+    }
+    
+    updateTimer() {
+        const timerEl = document.getElementById('timer');
+        if (!timerEl) return;
+        
+        if (this.startTime) {
+            const elapsed = (Date.now() - this.startTime) / 1000;
+            timerEl.textContent = elapsed.toFixed(2) + 's';
+        } else {
+            timerEl.textContent = '0.00s';
+        }
+    }
+    
+    updateStatus(message) {
+        const statusEl = document.getElementById('modern-status');
+        if (statusEl) statusEl.textContent = message;
+    }
+    
+    async highlightElements(index1, index2, className = 'modern-comparing') {
+        const elements = document.querySelectorAll('.modern-element');
+        if (elements[index1]) elements[index1].classList.add(className);
+        if (elements[index2]) elements[index2].classList.add(className);
+        
+        await new Promise(resolve => setTimeout(resolve, 1200));
+    }
+    
+    async clearHighlights() {
+        const elements = document.querySelectorAll('.modern-element');
+        elements.forEach(el => {
+            el.classList.remove('modern-comparing', 'modern-swapping');
+        });
+    }
+    
+    async swapElements(index1, index2) {
+        const elements = document.querySelectorAll('.modern-element');
+        
+        elements[index1]?.classList.add('modern-swapping');
+        elements[index2]?.classList.add('modern-swapping');
+        
+        await new Promise(resolve => setTimeout(resolve, 800));
+        
+        [this.array[index1], this.array[index2]] = [this.array[index2], this.array[index1]];
+        this.stats.swaps++;
+        
+        this.updateModernDisplay();
+        await new Promise(resolve => setTimeout(resolve, 300));
+    }
+    
+    async startAnimation() {
+        if (this.isAnimating) return;
+        
+        this.isAnimating = true;
+        this.stats = { comparisons: 0, swaps: 0, passes: 0 };
+        
+        // Start the timer
+        this.startTimer();
+        
+        const startBtn = document.querySelector('.modern-btn-primary');
+        if (startBtn) {
+            startBtn.disabled = true;
+            startBtn.textContent = '⚡ Processing...';
+        }
+        
+        const n = this.array.length;
+        
+        for (let i = 0; i < n - 1; i++) {
+            this.stats.passes = i + 1;
+            this.updateStatus(`🔍 Pass ${i + 1}: Finding largest element...`);
+            
+            for (let j = 0; j < n - i - 1; j++) {
+                this.stats.comparisons++;
+                
+                await this.highlightElements(j, j + 1);
+                this.updateStatus(`⚖️ Comparing: ${this.array[j]} vs ${this.array[j + 1]}`);
+                
+                if (this.array[j] > this.array[j + 1]) {
+                    this.updateStatus(`🔄 Swapping ${this.array[j]} and ${this.array[j + 1]}...`);
+                    await this.swapElements(j, j + 1);
+                } else {
+                    await new Promise(resolve => setTimeout(resolve, 800));
+                }
+                
+                await this.clearHighlights();
+            }
+            
+            const elements = document.querySelectorAll('.modern-element');
+            if (elements[n - i - 1]) {
+                elements[n - i - 1].classList.add('modern-sorted');
+            }
+            
+            await new Promise(resolve => setTimeout(resolve, 1000));
+        }
+        
+        // Mark all as sorted
+        const elements = document.querySelectorAll('.modern-element');
+        elements.forEach((el, index) => {
+            setTimeout(() => el.classList.add('modern-sorted'), index * 100);
+        });
+        
+        this.updateStatus('🏆 Quantum sorting complete! Perfect order achieved');
+        
+        // Stop the timer
+        this.stopTimer();
+        
+        this.isAnimating = false;
+        if (startBtn) {
+            startBtn.disabled = false;
+            startBtn.textContent = '🚀 Launch Sequence';
+        }
+    }
+    
+    reset() {
+        if (this.isAnimating) return;
+        
+        // Stop and reset timer
+        this.stopTimer();
+        this.startTime = null;
+        
+        this.array = [...this.originalArray];
+        this.stats = { comparisons: 0, swaps: 0, passes: 0 };
+        this.updateModernDisplay();
+        this.updateStatus('🔮 Matrix reset - Ready for next sequence');
+    }
+    
+    generateRandom() {
+        if (this.isAnimating) return;
+        
+        // Stop and reset timer
+        this.stopTimer();
+        this.startTime = null;
+        
+        this.array = Array.from({length: 7}, () => Math.floor(Math.random() * 80) + 10);
+        this.originalArray = [...this.array];
+        this.stats = { comparisons: 0, swaps: 0, passes: 0 };
+        this.updateModernDisplay();
+        this.updateStatus('🎲 New random dataset generated');
+    }
+}
+
+const modernVisualizer = new ModernBubbleSortVisualizer();
+
+function startModernAnimation() {
+    modernVisualizer.startAnimation();
+}
+
+function resetModernArray() {
+    modernVisualizer.reset();
+}
+
+function generateRandomArray() {
+    modernVisualizer.generateRandom();
+}
+</script>
+
