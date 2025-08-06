@@ -45,20 +45,20 @@ class ItomHeader:
         self.config = value
         return self
     
-    def getDescription(self) -> str:
-        return self.description
+    def getDescription(self,default:str = "") -> str:
+        return self.description if self.description is not None else default
     
-    def getDslId(self) -> str:
-        return self.dslId
+    def getDslId(self,default:str = "") -> str:
+        return self.dslId if self.dslId is not None else default
     
-    def getInputs(self) -> dict:
-        return self.inputs
+    def getInputs(self,default:dict = {}) -> dict:
+        return self.inputs if self.inputs is not None else default
     
-    def getOutputs(self) -> dict:
-        return self.outputs
+    def getOutputs(self,default:dict = {}) -> dict:
+        return self.outputs if self.outputs is not None else default
     
-    def getConfig(self) -> dict:
-        return self.config
+    def getConfig(self,default:dict = {}) -> dict:
+        return self.config if self.config is not None else default
     
     
     def parseFromItomFile(self, filename: str) -> "ItomHeader":

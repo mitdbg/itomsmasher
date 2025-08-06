@@ -80,24 +80,14 @@ class NamedProgram:
         except Exception as e:
             raise ValueError(f"Invalid header: {str(e)}")
 
-        description = hdr.getDescription()
-        if description is None:
-            description = ""
-        dslId = hdr.getDslId()
-        if dslId is None:
-            dslId = ""
-        inputs = hdr.getInputs()
-        if inputs is None:
-            inputs = {}
-        outputs = hdr.getOutputs()
-        if outputs is None:
-            outputs = {}
-        config = hdr.getConfig()
-        if config is None:
-            config = {}
+        description = hdr.getDescription(default="")
+        dslId = hdr.getDslId(default="")
+        inputs = hdr.getInputs(default={})
+        outputs = hdr.getOutputs(default={})
+        config = hdr.getConfig(default={})
 
         remainingCode = hdr.getRemainingCode()
-        if dslId is None:
+        if dslId is None or dslId == "":
             raise ValueError("No dsl field found in header")
 
         return remainingCode, description, dslId, inputs, outputs, config

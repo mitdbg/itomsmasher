@@ -52,6 +52,45 @@ def status(programDirectory: ProgramDirectory):
     for i, program in enumerate(programs):
         print(f"{i+1}. {program.name}: {program.description}")
 
+
+def parseExtraInputs(inputs: List[str]) -> dict:
+    extraInputs = {}
+    if (inputs is not None):
+        for input in inputs:
+            try:
+                key, value = input.split("=")
+                key = key.strip()
+                value = value.strip()
+                if (key == "" or value == ""):
+                    print(f"Invalid input: {input}")
+                    sys.exit(1)
+                # determine if the value is a number, boolean, or string
+                if (value.isdigit()):
+                    value = int(value)
+                elif (value.lower() == "true"):
+                    value = True
+                elif (value.lower() == "false"):
+                    value = False
+                else:
+                    # check if it's a list or dictionary, otherwise assume it's a string
+                    if (value.startswith("[") and value.endswith("]")):
+                        value = json.loads(value)
+                    elif (value.startswith("{") and value.endswith("}")):
+                        value = json.loads(value)
+                    else:
+                        # wrap in quotes if it's a string
+                        if (value.startswith("'") and value.endswith("'")):
+                            value = f'"{value}"'
+                        else:
+                            value = value
+                extraInputs[key] = value
+                print(f"{key}: {value}")
+            except ValueError:
+                print(f"Invalid input: {input}")
+                sys.exit(1)
+    return extraInputs
+
+
 if __name__ == "__main__":
     # process the command line, with help etc.
     # The user can either run a program by name (-run), or add a new program ()
@@ -62,11 +101,15 @@ if __name__ == "__main__":
     parser.add_argument("-add", type=str, help="Source file of the program to add", nargs="+")
     parser.add_argument("-status", action="store_true", help="List all programs")
     parser.add_argument("-format", type=str, help="Preferred output format (png, html, etc)", default="png")
-    parser.add_argument("-output", type=str, help="Output file path for visual rendering")
+    parser.add_argument("-output", type=str, help="Output file path")
+    parser.add_argument("-curry",type=str,help="Curry a program with a given input to create a new itom")
+    parser.add_argument("-inputs",type=str,help="Inputs to curry or invoke in run mode",nargs="+")
     parser.add_argument("-r", "--recursive", action="store_true", help="Used with -add to try to recursively add all included itoms")
     parser.add_argument("-t", "--trace", action="store_true", help="Used with -run to print the trace")
 
     args = parser.parse_args()
+
+    extraInputs = parseExtraInputs(args.inputs)
 
     localProgramDir = ".programs"
     if not os.path.exists(localProgramDir):
@@ -93,6 +136,10 @@ if __name__ == "__main__":
         for programFile in args.add:
             programName = programFile.split("/")[-1].split(".")[0]
             programDirectory.addNewProgram(programName, f"Loaded from file {programFile}", open(programFile).read(), refresh=True)
+    elif args.curry:
+        # Curry a program with a given input to create a new itom
+        programName = args.curry
+        programDirectory.curryProgram(programName, extraInputs)
     else:
         print("Usage: python cmdline.py -run <program_name> or python cmdline.py -add <program_name> or python cmdline.py -status")
         sys.exit(1)
