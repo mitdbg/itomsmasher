@@ -52,6 +52,35 @@ To see all available programs:
 ```bash
 python src/cmdline.py -status
 ```
+### Currying a program
+
+It is possible to modify the inputs on an itom and produce a derivative itom with those inputs pre-set
+
+To check which inputs you can set, you can run:
+```bash
+python src/cmdline.py -curry cvllm
+```
+This will indicate what inputs cvllm has. 
+
+To modify these, you can do:
+```bash
+python src/cmdline.py -curry cvllm -inputs filename=cv9.pdf -output cv9llm
+```
+Output is an optional new program name. If it is not provided, a derivative name will be produced (cvllm_XXXX based on the hash of the input).
+
+Multiple inputs can be provided separated by a space. Quoting is needed for more sophisticated types:
+```bash
+python src/cmdline.py -curry programName -inputs 'a=["a","b","c"]' c="d" 'x={"a":"b"}' -output newProgram
+```
+
+If the input has a nested structure, e.g.,
+```
+#@ inputs:
+#@   input1:
+#@     default: ...
+#@     type: string
+```
+currying will modify (or add) the key "default" (leaving the rest as is).
 
 ## DSL Types and Examples
 
