@@ -65,6 +65,27 @@ class NamedProgram:
         self.executions = executions
         self.config = config
 
+    def clone(self) -> "NamedProgram":
+        return NamedProgram(self.name, 
+                            self.created, 
+                            self.modified, 
+                            self.description, 
+                            self.dslId, 
+                            self.inputs.copy(), 
+                            self.outputs.copy(), 
+                            self.rawCodeVersions.copy(), 
+                            self.codeVersions.copy(), 
+                            self.executions.copy(), 
+                            self.config.copy())
+    
+    def getHeader(self) -> ItomHeader:
+        hdr = ItomHeader()
+        hdr.setDescription(self.description)
+        hdr.setDslId(self.dslId)
+        hdr.setInputs(self.inputs)
+        hdr.setOutputs(self.outputs)
+        return hdr
+    
     @classmethod
     def __processCodeHeader__(cls, code: str) -> Tuple[str, str, str, List[str], List[str], dict]:
         # Read the code header to get the description, dslId, inputs, and outputs.
@@ -178,6 +199,28 @@ class ProgramDirectory:
 
         self.__refresh__()
 
+    def curryProgram(self, programName: str, extraInputs: dict, outputProgramName: str) -> None:
+        program = self.programs[programName]
+        # clone the program
+        newProgram = program.clone()
+        newProgram.name = outputProgramName
+        # get the existing inputs
+        existingInputs = program.inputs
+        # iterate over the extra inputs
+        for key, value in extraInputs.items():
+            # get the value from existing input
+            oldValue = existingInputs[key]
+            # if it's a dictionary, replace the default
+            if isinstance(oldValue, dict):
+                newProgram.inputs[key]["default"] = value
+            # if it's a list, replace the first element
+            else:
+                newProgram.inputs[key] = value
+
+        # add the new program to the program directory
+        self.addNewNamedProgram(newProgram)
+       
+
     def save(self) -> None:
         for programName, program in self.programs.items():
             programDir = os.path.join(self.localProgramDir, programName)
@@ -212,6 +255,11 @@ class ProgramDirectory:
                     changed = True
         if changed:
             self.save()
+
+    def addNewNamedProgram(self,program:NamedProgram) -> None:
+        # add the the program to the program directory
+        self.programs[program.name] = program
+        self.save()
 
     def addNewProgram(self, programName: str, metadataComment: str, rawCode: str, refresh: bool = False) -> None:
         if programName not in self.programs:

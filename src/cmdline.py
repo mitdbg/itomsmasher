@@ -7,6 +7,7 @@ import shutil
 from programs import ProgramInput, ProgramOutput, ProgramDirectory, NamedProgram, TracerNode
 from programExecutor import ProgramExecutor
 from typing import Optional, List, Tuple
+import hashlib
 
 def runProgram(programDirectory: ProgramDirectory, programExecutor: ProgramExecutor, programName: str, preferredVisualReturnType: str, config: dict, trace: bool):
     
@@ -139,7 +140,20 @@ if __name__ == "__main__":
     elif args.curry:
         # Curry a program with a given input to create a new itom
         programName = args.curry
-        programDirectory.curryProgram(programName, extraInputs)
+        # if extra inputs is empty or None, load the program
+        # and print the inputs
+        if extraInputs is None or len(extraInputs) == 0:
+            program = programDirectory.getProgram(programName)
+            print(f"Program {programName} inputs:")
+            for key, value in program.inputs.items():
+                print(f"\t{key}: {value}")
+            sys.exit(1)
+        else:
+            if args.output is None:
+                # generate the suffix as the md5 of the extra inputs
+                suffix = hashlib.md5(json.dumps(extraInputs).encode()).hexdigest()
+                args.output = f"{programName}_{suffix}"
+            programDirectory.curryProgram(programName, extraInputs,args.output)
     else:
         print("Usage: python cmdline.py -run <program_name> or python cmdline.py -add <program_name> or python cmdline.py -status")
         sys.exit(1)
