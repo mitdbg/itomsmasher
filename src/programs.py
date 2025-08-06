@@ -4,6 +4,7 @@ import os
 from datetime import datetime
 from typing import Optional, List, Tuple, TypedDict, Any
 from ItomHeader import ItomHeader
+import re
 
 # ProgramInput is a class that represents the input of a program
 class ProgramInput(TypedDict):
@@ -259,7 +260,23 @@ class ProgramDirectory:
     def addNewNamedProgram(self,program:NamedProgram) -> None:
         # add the the program to the program directory
         self.programs[program.name] = program
-        self.save()
+        programName = program.name
+        programDir = os.path.join(self.localProgramDir, programName)
+        if not os.path.exists(programDir):
+            os.makedirs(programDir)
+
+        # Create the code file if it doesn't exist
+        codeFile = os.path.join(programDir, "code.itom")
+        code = program.getLatestRawCode()
+        # remove all the #@ lines 
+        code = re.sub(r'^#@.*\n', '', code, flags=re.MULTILINE)
+        newCode = str(program.getHeader()) + "\n" + code
+        with open(codeFile, "w") as f:
+            f.write(newCode)
+
+        # Write out the program JSON file
+        with open(os.path.join(self.localProgramDir, programName, "program.json"), "w") as f:
+            f.write(program.toJson())
 
     def addNewProgram(self, programName: str, metadataComment: str, rawCode: str, refresh: bool = False) -> None:
         if programName not in self.programs:
