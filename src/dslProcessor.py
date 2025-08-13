@@ -18,7 +18,7 @@ class DSLProcessor:
     def process(self, code: str, input: dict, outputNames: List[str], preferredVisualReturnType: str, config:dict,tracer: Optional[TracerNode] = None) -> ProgramOutput:
         raise NotImplementedError("DSLProcessor is an abstract class and cannot be instantiated directly")
 
-    def getIncludes(self, program:NamedProgram, kwargs:dict={}) -> ItomIncludeTree:
+    def getIncludes(self, program:NamedProgram, kwargs:list[str]=[]) -> ItomIncludeTree:
         raise NotImplementedError("DSLProcessor is an abstract class and cannot be instantiated directly")
     
     def runProgram(self, program: NamedProgram, input: ProgramInput, preferredVisualReturnType, config:dict,tracer: Optional[TracerNode] = None) -> ProgramOutput:
@@ -50,9 +50,9 @@ class PreprocessedDSL(DSLProcessor):
     def postprocess(self, processedCode: str, processedOutputState: dict, input: dict, outputNames: List[str], preferredVisualReturnType: str, config:dict,tracer: Optional[TracerNode] = None) -> ProgramOutput:
         raise NotImplementedError("PreprocessedDSL is an abstract class and cannot be instantiated directly")
 
-    def getIncludes(self, program:NamedProgram, kwargs:dict={}) -> ItomIncludeTree:
+    def getIncludes(self, program:NamedProgram, kwargs:list[str]=[]) -> ItomIncludeTree:
         from jinja2 import Environment, BaseLoader
-        from jinja2.nodes import Call, Name
+        from jinja2.nodes import Call, Name,Const
 
         env = Environment(loader=BaseLoader)
         tree = env.parse(program.codeVersions[-1])
@@ -73,12 +73,8 @@ class PreprocessedDSL(DSLProcessor):
                 try:
                     # find the first argumen
                     arg = node.args[0]
-                    nkwargs = node.kwargs
                     # loop through, and create a dictionary of the kwargs
-                    kwarglist = {}
-                    for kwarg in nkwargs:
-                        kwarglist[kwarg.key] = 1
-                    
+                    kwarglist = [str(kwarg.key) for kwarg in node.kwargs]
 
                     childProgram = self.programDirectory.getProgram(arg.value)
                     childProcessor = programExecutor.getDSLProcessor(childProgram.dslId)

@@ -321,25 +321,26 @@ class ProgramDirectory:
         return self.programExecutor
     
 class ItomIncludeTree:
-    def __init__(self, program:str, invokes:list["ItomIncludeTree"]=None, header:"ItomHeader"=None, parent=None, kwargs:dict={}):
+    def __init__(self, program:str, invokes:list["ItomIncludeTree"]=None, header:"ItomHeader"=None, parent=None, kwargs:list[str]=[]):
         self.program = program
         self.invokes = invokes
         self.header = header
         self.parent = parent
         self.kwargs = kwargs
 
-    def addInvokes(self, child: "ItomIncludeTree"):
+    def addInvokes(self, child: "ItomIncludeTree") -> "ItomIncludeTree":
         #print("addingChild from: ",[self]," to: ",[child])
         if self.invokes is None:
             self.invokes = [child]
         else:
             self.invokes.append(child)
         child.parent = self
+        return self
 
-    def getKwargs(self) -> dict:
+    def getKwargs(self) -> list[str]:
         return self.kwargs
     
-    def setKwargs(self, kwargs:dict):
+    def setKwargs(self, kwargs:list[str]):
         self.kwargs = kwargs
     
     def getParent(self) -> "ItomIncludeTree":
