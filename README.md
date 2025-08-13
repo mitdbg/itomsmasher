@@ -52,6 +52,17 @@ To see all available programs:
 ```bash
 python src/cmdline.py -status
 ```
+
+### Finding the include tree
+
+It is possible to get all the included itoms (hierarchly) of a program by invoking cmdline with -i or --includes:
+
+```bash
+python src/cmdline.py -i programname
+```
+### Tracing the execution
+The execution trace can be displayed by using -t or --trace with --run
+
 ### Currying a program
 
 It is possible to modify the inputs on an itom and produce a derivative itom with those inputs pre-set
@@ -211,3 +222,5 @@ python src/cmdline.py -run SlideTest -output slides.html -format html
 Programs are stored in the `.programs` directory as individual folders containing:
 - `program.json` - Program metadata and version history
 - `code.itom` - Latest program source code
+
+##

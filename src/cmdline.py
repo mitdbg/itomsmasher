@@ -131,7 +131,7 @@ if __name__ == "__main__":
     elif args.add:
         recursive = False
         if args.recursive:
-            print("Recursively adding all included itoms")
+            print("Recursively adding doesn't work yet")
             recursive = True
         # ITerate through the multiple files provided at -add
         for programFile in args.add:
