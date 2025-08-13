@@ -33,6 +33,11 @@ class ProgramExecutor:
         }
         self.programDirectory.setProgramExecutor(self)
 
+    def getDSLProcessor(self, dslId: str) -> DSLProcessor:
+        if dslId not in self.availableDSLProcessors:
+            raise ValueError(f"DSL processor {dslId} not found")
+        return self.availableDSLProcessors[dslId]
+    
     def getVisualReturnTypesForProgram(self, program: NamedProgram) -> list[str]:
         dslProcessor = self.availableDSLProcessors[program.dslId]
         return dslProcessor.getVisualReturnTypes()

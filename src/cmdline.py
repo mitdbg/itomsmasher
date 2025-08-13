@@ -40,10 +40,9 @@ def runProgram(programDirectory: ProgramDirectory, programExecutor: ProgramExecu
         raise ValueError(f"Invalid format: {args.format}")
     
     # Print the trace
-    #print(root.to_json())
     if args.trace:
         # pretty print the trace
-        pretty = json.dumps(root.to_json(), indent=4)
+        pretty = json.dumps(root.toJSON(), indent=4)
         print(pretty)
     return(root)
 
@@ -107,6 +106,7 @@ if __name__ == "__main__":
     parser.add_argument("-inputs",type=str,help="Inputs to curry or invoke in run mode",nargs="+")
     parser.add_argument("-r", "--recursive", action="store_true", help="Used with -add to try to recursively add all included itoms")
     parser.add_argument("-t", "--trace", action="store_true", help="Used with -run to print the trace")
+    parser.add_argument("-i", "--includes", type=str, help="find the includes in an itom")
 
     args = parser.parse_args()
 
@@ -154,6 +154,13 @@ if __name__ == "__main__":
                 suffix = hashlib.md5(json.dumps(extraInputs).encode()).hexdigest()
                 args.output = f"{programName}_{suffix}"
             programDirectory.curryProgram(programName, extraInputs,args.output)
+    elif args.includes:
+        programName = args.includes
+        program = programDirectory.getProgram(programName)
+        processor = programExecutor.getDSLProcessor(program.dslId)
+        tree = processor.getIncludes(program)
+        # format the json using json.dumps
+        print(tree)
     else:
         print("Usage: python cmdline.py -run <program_name> or python cmdline.py -add <program_name> or python cmdline.py -status")
         sys.exit(1)

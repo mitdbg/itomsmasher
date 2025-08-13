@@ -135,6 +135,15 @@ class ItomHeader:
         
         return toRet
 
+    def toJSON(self) -> str:
+        return {
+            "description": self.description,
+            "dslId": self.dslId,
+            "inputs": self.inputs if len(self.inputs) > 0 else None,
+            "outputs": self.outputs if len(self.outputs) > 0 else None,
+            "config": self.config if len(self.config) > 0 else None
+        }
+    
     # convert to header string
     def __str__(self):
         # add a #@ prefix to each line

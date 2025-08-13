@@ -1,4 +1,4 @@
-from programs import ProgramInput, ProgramOutput, ProgramDirectory, NamedProgram, TracerNode
+from programs import ProgramInput, ProgramOutput, ProgramDirectory, NamedProgram, TracerNode, ItomIncludeTree
 import time, os, base64
 import re
 from typing import Optional, List, Tuple, Any
@@ -6,7 +6,6 @@ import markdown as mdlib
 import copy
 from bs4 import BeautifulSoup
 from playwright.sync_api import sync_playwright
-
 
 # DSLProcessor is a generic superclass for all DSL processors
 class DSLProcessor:
@@ -19,6 +18,9 @@ class DSLProcessor:
     def process(self, code: str, input: dict, outputNames: List[str], preferredVisualReturnType: str, config:dict,tracer: Optional[TracerNode] = None) -> ProgramOutput:
         raise NotImplementedError("DSLProcessor is an abstract class and cannot be instantiated directly")
 
+    def getIncludes(self, program:NamedProgram, kwargs:dict={}) -> ItomIncludeTree:
+        raise NotImplementedError("DSLProcessor is an abstract class and cannot be instantiated directly")
+    
     def runProgram(self, program: NamedProgram, input: ProgramInput, preferredVisualReturnType, config:dict,tracer: Optional[TracerNode] = None) -> ProgramOutput:
         # Create pair of input and empty output
         if tracer is not None:
@@ -47,6 +49,48 @@ class PreprocessedDSL(DSLProcessor):
 
     def postprocess(self, processedCode: str, processedOutputState: dict, input: dict, outputNames: List[str], preferredVisualReturnType: str, config:dict,tracer: Optional[TracerNode] = None) -> ProgramOutput:
         raise NotImplementedError("PreprocessedDSL is an abstract class and cannot be instantiated directly")
+
+    def getIncludes(self, program:NamedProgram, kwargs:dict={}) -> ItomIncludeTree:
+        from jinja2 import Environment, BaseLoader
+        from jinja2.nodes import Call, Name
+
+        env = Environment(loader=BaseLoader)
+        tree = env.parse(program.codeVersions[-1])
+
+        # find all call nodes
+        
+        header = program.getHeader()
+
+        itomIncludeTree = ItomIncludeTree(program=program.name, header=header, kwargs=kwargs)
+        #print("XXXX",itomIncludeTree.getKwargs(),itomIncludeTree.program)
+        programExecutor = self.programDirectory.getProgramExecutor()
+
+        for node in tree.find_all(Call):
+            # find the node name
+            name = node.find(Name)
+            # if the name is include, print the arguments
+            if name.name == "include":
+                try:
+                    # find the first argumen
+                    arg = node.args[0]
+                    nkwargs = node.kwargs
+                    # loop through, and create a dictionary of the kwargs
+                    kwarglist = {}
+                    for kwarg in nkwargs:
+                        kwarglist[kwarg.key] = 1
+                    
+
+                    childProgram = self.programDirectory.getProgram(arg.value)
+                    childProcessor = programExecutor.getDSLProcessor(childProgram.dslId)
+                    childTree = childProcessor.getIncludes(childProgram,kwarglist)
+                    #print("   ",childTree.getKwargs(),childTree.program,len(childTree.getInvokes()))
+                    itomIncludeTree.addInvokes(childTree)
+                                        
+                except ValueError as e:
+                    print(f"WARNING: include {arg.value} not found")
+                    continue
+        return itomIncludeTree
+
 
     def preprocess(self, code: str, input: dict, outputNames: List[str], preferredVisualReturnType: str, config:dict,tracer: Optional[TracerNode] = None) -> Tuple[str, dict]:
         # Use Jinja to process the document

@@ -319,6 +319,56 @@ class ProgramDirectory:
 
     def getProgramExecutor(self) -> "ProgramExecutor":
         return self.programExecutor
+    
+class ItomIncludeTree:
+    def __init__(self, program:str, invokes:list["ItomIncludeTree"]=None, header:"ItomHeader"=None, parent=None, kwargs:dict={}):
+        self.program = program
+        self.invokes = invokes
+        self.header = header
+        self.parent = parent
+        self.kwargs = kwargs
+
+    def addInvokes(self, child: "ItomIncludeTree"):
+        #print("addingChild from: ",[self]," to: ",[child])
+        if self.invokes is None:
+            self.invokes = [child]
+        else:
+            self.invokes.append(child)
+        child.parent = self
+
+    def getKwargs(self) -> dict:
+        return self.kwargs
+    
+    def setKwargs(self, kwargs:dict):
+        self.kwargs = kwargs
+    
+    def getParent(self) -> "ItomIncludeTree":
+        return self.parent
+    
+    def getInvokes(self) -> list["ItomIncludeTree"]:
+        return self.invokes
+    
+    def getProgram(self) -> str:
+        return self.program
+    
+    def toJSON(self) -> dict:
+        #print([self])
+        #print(self.program,len(self.invokes))
+        tInvokes = []
+        if self.invokes is not None:
+            for child in self.invokes:
+                if self != child:
+                    tInvokes.append(child.toJSON())
+        return {
+            "program": self.program,
+            "kwargs":self.getKwargs() if len(self.getKwargs()) > 0 else None,
+            "header": self.header.toJSON() if self.header is not None else None,
+            "invokes": tInvokes          #  "invokes": [child.to_json() for child in self.getInvokes()],
+        }
+    
+    def __str__(self):
+        return json.dumps(self.toJSON(), indent=4)
+
 
 class TracerNode:
     def __init__(self, program: 'NamedProgram', output: Optional['ProgramOutput'] = None, input: Optional['ProgramInput'] = None):
@@ -330,7 +380,7 @@ class TracerNode:
         self.endtime = None
         self.children = []
     
-    def to_json(self) -> str:
+    def toJSON(self) -> dict:
         if self.duration is None:
             self.end(None)
         return {
@@ -340,7 +390,7 @@ class TracerNode:
             "output": {'data': self.output.data()} if self.output is not None else None,
             "endtime": self.endtime.isoformat() if self.endtime is not None else None,
             "duration": self.duration.total_seconds() if self.duration is not None else None,
-            "children": [child.to_json() for child in self.children]
+            "children": [child.toJSON() for child in self.children]
         }
 
     def start(self, input: Optional['ProgramInput'] = None):
